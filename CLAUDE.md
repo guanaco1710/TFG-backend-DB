@@ -140,6 +140,7 @@ Specialised agents live in `.claude/agents/`. Pick the one whose scope matches t
 
 **Workflow**
 - **github-manager** — branches, commits, PRs, issues, CI status, releases via `gh` CLI.
-- **devops-config** — Spring profiles, `application.yaml` hierarchy, env vars, Dockerfile, docker-compose for local Postgres, GitHub Actions CI, observability (Actuator, structured logging, metrics).
+- **devops-config** — Spring profiles, `application.yaml` hierarchy, env vars, Dockerfile, GitHub Actions CI, observability (Actuator, structured logging, metrics).
+- **docker-manager** — Docker container lifecycle: start/stop/inspect containers, manage docker-compose services, build images, tail logs, manage volumes and networks. Use for "start the db container", "rebuild the image", "show container logs", "fix the compose file".
 
-Invoke with the `Agent` tool when a task matches. Also useful: built-in skills `/simplify`, `/review`, `/security-review`, `/fewer-permission-prompts`.
+Invoke with the `Agent` tool when a task matches. Also useful: built-in skills `/simplify`, `/review`, `/security-review`, `/fewer-permission-prompts`, `/setup-docker-db`.
