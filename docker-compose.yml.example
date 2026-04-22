@@ -1,0 +1,33 @@
+# Copy this file to docker-compose.yml and configure with your .env file
+# DO NOT commit docker-compose.yml to version control (it's in .gitignore)
+
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: tfg-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tfg_db}
+      POSTGRES_USER: ${POSTGRES_USER:-tfg_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tfg_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tfg-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tfg_user} -d ${POSTGRES_DB:-tfg_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  tfg-network:
+    driver: bridge
