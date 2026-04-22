@@ -1,6 +1,6 @@
 FROM postgres:16-alpine
 
-ENV POSTGRES_DB=tfg_db
+ENV POSTGRES_DB=GymBook_DB
 ENV POSTGRES_USER=tfg_user
 ENV POSTGRES_PASSWORD=tfg_password
 
