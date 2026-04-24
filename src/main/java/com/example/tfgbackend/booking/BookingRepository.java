@@ -25,15 +25,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     /**
      * Count non-cancelled bookings for a session — used for capacity enforcement.
      * CONFIRMED, ATTENDED, and NO_SHOW all occupy a physical seat.
+     * CANCELLED is the only status that frees up a slot.
      */
     @Query("""
             SELECT COUNT(b) FROM Booking b
              WHERE b.session.id = :sessionId
-               AND b.status IN (
-                     com.example.tfgbackend.enums.BookingStatus.CONFIRMED,
-                     com.example.tfgbackend.enums.BookingStatus.ATTENDED,
-                     com.example.tfgbackend.enums.BookingStatus.NO_SHOW
-                   )
+               AND b.status <> com.example.tfgbackend.enums.BookingStatus.CANCELLED
             """)
     long countConfirmedBySessionId(@Param("sessionId") Long sessionId);
 

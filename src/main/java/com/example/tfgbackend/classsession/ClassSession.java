@@ -3,6 +3,7 @@ package com.example.tfgbackend.classsession;
 import com.example.tfgbackend.classtype.ClassType;
 import com.example.tfgbackend.common.BaseEntity;
 import com.example.tfgbackend.enums.SessionStatus;
+import com.example.tfgbackend.gym.Gym;
 import com.example.tfgbackend.instructor.Instructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -74,6 +75,11 @@ public class ClassSession extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "class_type_id", nullable = false)
     private ClassType classType;
+
+    /** The gym where this session takes place.  Nullable for legacy rows. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gym_id")
+    private Gym gym;
 
     /**
      * The assigned instructor.  Nullable — a session may be created before an
