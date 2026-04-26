@@ -132,6 +132,7 @@
                         <exclude>com/example/tfgbackend/**/dto/**</exclude>
                         <exclude>com/example/tfgbackend/**/config/**</exclude>
                         <exclude>com/example/tfgbackend/common/BaseEntity.class</exclude>
+                        <exclude>com/example/tfgbackend/common/DataInitializer.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
