@@ -2,6 +2,7 @@ package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
+import com.example.tfgbackend.common.exception.InvalidResetTokenException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +49,12 @@ public class GlobalExceptionHandler {
     ResponseEntity<Map<String, Object>> handleTokenRevoked(
             TokenRevokedException ex, HttpServletRequest req) {
         return error(HttpStatus.UNAUTHORIZED, "TokenRevoked", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(InvalidResetTokenException.class)
+    ResponseEntity<Map<String, Object>> handleInvalidResetToken(
+            InvalidResetTokenException ex, HttpServletRequest req) {
+        return error(HttpStatus.UNAUTHORIZED, "InvalidResetToken", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

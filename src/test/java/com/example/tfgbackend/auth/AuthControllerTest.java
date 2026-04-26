@@ -1,14 +1,18 @@
 package com.example.tfgbackend.auth;
 
 import com.example.tfgbackend.auth.dto.AuthResponse;
+import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
+import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
+import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
 import com.example.tfgbackend.auth.dto.TokenPair;
 import com.example.tfgbackend.auth.dto.UserSummary;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
+import com.example.tfgbackend.common.exception.InvalidResetTokenException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
 import com.example.tfgbackend.enums.UserRole;
@@ -191,5 +195,92 @@ class AuthControllerTest {
                         .content(mapper.writeValueAsString(body)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401));
+    }
+
+    // -----------------------------------------------------------------------
+    // forgot-password
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("forgot-password: known email returns 200 with reset token")
+    void forgotPassword_KnownEmail_Returns200WithToken() throws Exception {
+        when(authService.forgotPassword(any()))
+                .thenReturn(new ForgotPasswordResponse("If that email is registered, a reset link has been sent.", "raw-reset-token"));
+
+        ForgotPasswordRequest body = new ForgotPasswordRequest("alice@test.com");
+
+        mvc.perform(post(BASE + "/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.resetToken").value("raw-reset-token"));
+    }
+
+    @Test
+    @DisplayName("forgot-password: unknown email still returns 200 (no enumeration)")
+    void forgotPassword_UnknownEmail_Returns200WithoutToken() throws Exception {
+        when(authService.forgotPassword(any()))
+                .thenReturn(new ForgotPasswordResponse("If that email is registered, a reset link has been sent.", null));
+
+        ForgotPasswordRequest body = new ForgotPasswordRequest("nobody@test.com");
+
+        mvc.perform(post(BASE + "/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("forgot-password: invalid email format returns 400")
+    void forgotPassword_InvalidEmail_Returns400() throws Exception {
+        ForgotPasswordRequest body = new ForgotPasswordRequest("not-an-email");
+
+        mvc.perform(post(BASE + "/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
+    }
+
+    // -----------------------------------------------------------------------
+    // reset-password
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("reset-password: valid token returns 200")
+    void resetPassword_ValidToken_Returns200() throws Exception {
+        ResetPasswordRequest body = new ResetPasswordRequest("valid-token", "newpassword123");
+
+        mvc.perform(post(BASE + "/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("reset-password: invalid token returns 401")
+    void resetPassword_InvalidToken_Returns401() throws Exception {
+        org.mockito.Mockito.doThrow(new InvalidResetTokenException())
+                .when(authService).resetPassword(any());
+
+        ResetPasswordRequest body = new ResetPasswordRequest("bad-token", "newpassword123");
+
+        mvc.perform(post(BASE + "/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401));
+    }
+
+    @Test
+    @DisplayName("reset-password: password too short returns 400")
+    void resetPassword_ShortPassword_Returns400() throws Exception {
+        ResetPasswordRequest body = new ResetPasswordRequest("valid-token", "short");
+
+        mvc.perform(post(BASE + "/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 }

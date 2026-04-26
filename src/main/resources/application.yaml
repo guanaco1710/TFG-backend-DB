@@ -1,6 +1,8 @@
 spring:
   application:
     name: tfg-backend
+  flyway:
+    enabled: false
   jpa:
     hibernate:
       ddl-auto: none

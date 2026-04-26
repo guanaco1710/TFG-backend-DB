@@ -1,13 +1,17 @@
 package com.example.tfgbackend.auth;
 
 import com.example.tfgbackend.auth.dto.AuthResponse;
+import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
+import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
+import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
 import com.example.tfgbackend.auth.dto.TokenPair;
 import com.example.tfgbackend.auth.dto.UserSummary;
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
+import com.example.tfgbackend.common.exception.InvalidResetTokenException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
 import com.example.tfgbackend.enums.UserRole;
@@ -35,8 +39,11 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    private static final long PASSWORD_RESET_EXPIRATION_SECONDS = 900L;
 
     /**
      * Registers a new user account (default role: CUSTOMER) and returns tokens.
@@ -117,6 +124,55 @@ public class AuthService {
                 .orElseThrow(TokenRevokedException::new);
 
         return issueTokenPair(user);
+    }
+
+    /**
+     * Generates a password reset token for the given email address.
+     *
+     * <p>Always returns 200 with the same message regardless of whether the email exists,
+     * to prevent user enumeration. The raw token is included in the response because this
+     * project has no email service; in production it would be sent by email instead.
+     */
+    @Transactional
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        String message = "If that email is registered, a reset link has been sent.";
+
+        return userRepository.findByEmail(request.email()).map(user -> {
+            String rawToken = jwtService.generateRefreshToken();
+            PasswordResetToken token = PasswordResetToken.builder()
+                    .tokenHash(JwtService.sha256Hex(rawToken))
+                    .userId(user.getId())
+                    .expiresAt(Instant.now().plusSeconds(PASSWORD_RESET_EXPIRATION_SECONDS))
+                    .used(false)
+                    .build();
+            passwordResetTokenRepository.save(token);
+            return new ForgotPasswordResponse(message, rawToken);
+        }).orElse(new ForgotPasswordResponse(message, null));
+    }
+
+    /**
+     * Resets the user's password using a valid, unexpired, unused reset token.
+     *
+     * @throws InvalidResetTokenException if the token is unknown, already used, or expired
+     */
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        String hash = JwtService.sha256Hex(request.token());
+
+        PasswordResetToken token = passwordResetTokenRepository.findByTokenHash(hash)
+                .orElseThrow(InvalidResetTokenException::new);
+
+        if (token.isUsed() || token.getExpiresAt().isBefore(Instant.now())) {
+            throw new InvalidResetTokenException();
+        }
+
+        token.setUsed(true);
+        passwordResetTokenRepository.save(token);
+
+        User user = userRepository.findById(token.getUserId())
+                .orElseThrow(InvalidResetTokenException::new);
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
     }
 
     // -----------------------------------------------------------------------

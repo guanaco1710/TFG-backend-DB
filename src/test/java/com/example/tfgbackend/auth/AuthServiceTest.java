@@ -1,12 +1,16 @@
 package com.example.tfgbackend.auth;
 
 import com.example.tfgbackend.auth.dto.AuthResponse;
+import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
+import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
+import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
 import com.example.tfgbackend.auth.dto.TokenPair;
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
+import com.example.tfgbackend.common.exception.InvalidResetTokenException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
 import com.example.tfgbackend.enums.UserRole;
@@ -40,6 +44,7 @@ class AuthServiceTest {
 
     @Mock UserRepository userRepository;
     @Mock RefreshTokenRepository refreshTokenRepository;
+    @Mock PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtService jwtService;
 
@@ -232,6 +237,115 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.refresh(new RefreshRequest(rawToken)))
                 .isInstanceOf(TokenRevokedException.class);
+    }
+
+    // -----------------------------------------------------------------------
+    // forgot-password
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("forgotPassword: known email creates reset token and returns it")
+    void forgotPassword_KnownEmail_CreatesTokenAndReturnsIt() {
+        User user = buildUser(1L, "alice@test.com", "$2a$12$hash", UserRole.CUSTOMER);
+        when(userRepository.findByEmail("alice@test.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateRefreshToken()).thenReturn("raw-reset-token");
+        when(passwordResetTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ForgotPasswordResponse resp = authService.forgotPassword(new ForgotPasswordRequest("alice@test.com"));
+
+        assertThat(resp.resetToken()).isEqualTo("raw-reset-token");
+        assertThat(resp.message()).isNotBlank();
+        verify(passwordResetTokenRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("forgotPassword: unknown email returns message without token (no enumeration)")
+    void forgotPassword_UnknownEmail_ReturnsMessageWithoutToken() {
+        when(userRepository.findByEmail("nobody@test.com")).thenReturn(Optional.empty());
+
+        ForgotPasswordResponse resp = authService.forgotPassword(new ForgotPasswordRequest("nobody@test.com"));
+
+        assertThat(resp.resetToken()).isNull();
+        assertThat(resp.message()).isNotBlank();
+        verify(passwordResetTokenRepository, never()).save(any());
+    }
+
+    // -----------------------------------------------------------------------
+    // reset-password
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("resetPassword: valid token updates password and marks token used")
+    void resetPassword_ValidToken_UpdatesPasswordAndMarksUsed() {
+        String raw = "valid-reset-token";
+        String hash = JwtService.sha256Hex(raw);
+        User user = buildUser(1L, "alice@test.com", "$2a$12$oldhash", UserRole.CUSTOMER);
+
+        PasswordResetToken token = PasswordResetToken.builder()
+                .tokenHash(hash)
+                .userId(1L)
+                .expiresAt(Instant.now().plusSeconds(900))
+                .used(false)
+                .build();
+
+        when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(token));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newpassword123")).thenReturn("$2a$12$newhash");
+        when(passwordResetTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.resetPassword(new ResetPasswordRequest(raw, "newpassword123"));
+
+        assertThat(token.isUsed()).isTrue();
+        assertThat(user.getPasswordHash()).isEqualTo("$2a$12$newhash");
+        verify(passwordResetTokenRepository).save(token);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("resetPassword: unknown token throws InvalidResetTokenException")
+    void resetPassword_UnknownToken_ThrowsInvalidResetToken() {
+        String hash = JwtService.sha256Hex("unknown-token");
+        when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.resetPassword(new ResetPasswordRequest("unknown-token", "newpassword123")))
+                .isInstanceOf(InvalidResetTokenException.class);
+    }
+
+    @Test
+    @DisplayName("resetPassword: already used token throws InvalidResetTokenException")
+    void resetPassword_UsedToken_ThrowsInvalidResetToken() {
+        String raw = "used-token";
+        String hash = JwtService.sha256Hex(raw);
+
+        PasswordResetToken token = PasswordResetToken.builder()
+                .tokenHash(hash).userId(1L)
+                .expiresAt(Instant.now().plusSeconds(900))
+                .used(true)
+                .build();
+
+        when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> authService.resetPassword(new ResetPasswordRequest(raw, "newpassword123")))
+                .isInstanceOf(InvalidResetTokenException.class);
+    }
+
+    @Test
+    @DisplayName("resetPassword: expired token throws InvalidResetTokenException")
+    void resetPassword_ExpiredToken_ThrowsInvalidResetToken() {
+        String raw = "expired-token";
+        String hash = JwtService.sha256Hex(raw);
+
+        PasswordResetToken token = PasswordResetToken.builder()
+                .tokenHash(hash).userId(1L)
+                .expiresAt(Instant.now().minusSeconds(1))
+                .used(false)
+                .build();
+
+        when(passwordResetTokenRepository.findByTokenHash(hash)).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> authService.resetPassword(new ResetPasswordRequest(raw, "newpassword123")))
+                .isInstanceOf(InvalidResetTokenException.class);
     }
 
     // -----------------------------------------------------------------------

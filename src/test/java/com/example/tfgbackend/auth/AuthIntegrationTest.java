@@ -1,9 +1,12 @@
 package com.example.tfgbackend.auth;
 
 import com.example.tfgbackend.auth.dto.AuthResponse;
+import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
+import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
+import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
 import com.example.tfgbackend.auth.dto.TokenPair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -153,5 +156,78 @@ class AuthIntegrationTest {
     void protectedEndpoint_NoToken_Returns401() {
         ResponseEntity<String> resp = rest.getForEntity(url("/api/v1/users/me"), String.class);
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("forgot-password → reset-password → login with new password succeeds")
+    void forgotPassword_ThenResetPassword_AllowsLoginWithNewPassword() {
+        RegisterRequest reg = new RegisterRequest("Reset User", "resetpw@test.com", "originalpass1!", null);
+        rest.postForEntity(url(BASE + "/register"), reg, AuthResponse.class);
+
+        ForgotPasswordResponse forgotResp = rest.postForEntity(
+                url(BASE + "/forgot-password"),
+                new ForgotPasswordRequest("resetpw@test.com"),
+                ForgotPasswordResponse.class).getBody();
+
+        assertThat(forgotResp).isNotNull();
+        assertThat(forgotResp.resetToken()).isNotBlank();
+
+        rest.postForEntity(
+                url(BASE + "/reset-password"),
+                new ResetPasswordRequest(forgotResp.resetToken(), "newpassword99!"),
+                Void.class);
+
+        ResponseEntity<AuthResponse> loginResp = rest.postForEntity(
+                url(BASE + "/login"),
+                new LoginRequest("resetpw@test.com", "newpassword99!"),
+                AuthResponse.class);
+
+        assertThat(loginResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(loginResp.getBody().tokens().accessToken()).isNotBlank();
+    }
+
+    @Test
+    @DisplayName("forgot-password: unknown email still returns 200 without token")
+    void forgotPassword_UnknownEmail_Returns200WithoutToken() {
+        ResponseEntity<ForgotPasswordResponse> resp = rest.postForEntity(
+                url(BASE + "/forgot-password"),
+                new ForgotPasswordRequest("ghost@test.com"),
+                ForgotPasswordResponse.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody().resetToken()).isNull();
+    }
+
+    @Test
+    @DisplayName("reset-password: invalid token returns 401")
+    void resetPassword_InvalidToken_Returns401() {
+        ResponseEntity<String> resp = rest.postForEntity(
+                url(BASE + "/reset-password"),
+                new ResetPasswordRequest("totally-fake-token", "newpassword99!"),
+                String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("reset-password: reusing a token returns 401")
+    void resetPassword_ReuseToken_Returns401() {
+        RegisterRequest reg = new RegisterRequest("Reuse User", "reuse@test.com", "originalpass1!", null);
+        rest.postForEntity(url(BASE + "/register"), reg, AuthResponse.class);
+
+        String token = rest.postForEntity(
+                url(BASE + "/forgot-password"),
+                new ForgotPasswordRequest("reuse@test.com"),
+                ForgotPasswordResponse.class).getBody().resetToken();
+
+        rest.postForEntity(url(BASE + "/reset-password"),
+                new ResetPasswordRequest(token, "newpassword99!"), Void.class);
+
+        ResponseEntity<String> second = rest.postForEntity(
+                url(BASE + "/reset-password"),
+                new ResetPasswordRequest(token, "anotherpass99!"),
+                String.class);
+
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }

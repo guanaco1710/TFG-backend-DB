@@ -1,9 +1,12 @@
 package com.example.tfgbackend.auth;
 
 import com.example.tfgbackend.auth.dto.AuthResponse;
+import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
+import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
+import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
 import com.example.tfgbackend.auth.dto.TokenPair;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +59,16 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenPair> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok().build();
     }
 }
