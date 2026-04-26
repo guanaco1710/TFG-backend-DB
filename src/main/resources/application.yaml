@@ -9,3 +9,14 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+app:
+  jwt:
+    # Secret MUST be overridden via APP_JWT_SECRET environment variable in production.
+    # The value below is a placeholder that will cause startup to fail safely
+    # if the env var is not set and no profile-specific override is provided.
+    secret: ${APP_JWT_SECRET:changeme-this-default-must-be-at-least-32-bytes-long!!}
+    # Access token lifetime in seconds (default: 15 minutes)
+    access-token-expiration: 900
+    # Refresh token lifetime in seconds (default: 7 days)
+    refresh-token-expiration: 604800
