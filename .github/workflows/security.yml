@@ -27,13 +27,29 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Cache OWASP Dependency Check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.odc-data
+          key: owasp-db-${{ runner.os }}-${{ steps.date.outputs.date }}
+          restore-keys: |
+            owasp-db-${{ runner.os }}-
+
       - name: Run OWASP Dependency Check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           ./mvnw --batch-mode --no-transfer-progress \
             org.owasp:dependency-check-maven:check \
             -DfailBuildOnCVSS=7 \
             -DsuppressionFile=.github/owasp-suppressions.xml \
-            -Dformats=HTML,JSON
+            -Dformats=HTML,JSON \
+            -Ddata.directory="${HOME}/.odc-data" \
+            ${NVD_API_KEY:+-DnvdApiKey="${NVD_API_KEY}"}
         continue-on-error: false
 
       - name: Upload OWASP report
