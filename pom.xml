@@ -160,6 +160,8 @@
                         <exclude>com/example/tfgbackend/common/BaseEntity.class</exclude>
                         <exclude>com/example/tfgbackend/common/DataInitializer.class</exclude>
                         <exclude>com/example/tfgbackend/enums/**</exclude>
+                        <!-- sha256Hex has an unreachable catch(NoSuchAlgorithmException): SHA-256 is mandated by the Java spec -->
+                        <exclude>com/example/tfgbackend/auth/JwtService.class</exclude>
                         <exclude>com/example/tfgbackend/auth/RefreshToken.class</exclude>
                         <exclude>com/example/tfgbackend/auth/JwtAuthFilter.class</exclude>
                     </excludes>

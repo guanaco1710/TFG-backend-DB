@@ -100,6 +100,22 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("register: explicit role is used when provided")
+    void register_WithExplicitRole_UsesProvidedRole() {
+        RegisterRequest req = new RegisterRequest("Inst", "inst@test.com", "supersecret123", UserRole.INSTRUCTOR);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$12$hash");
+        when(userRepository.save(any())).thenAnswer(inv -> reflectId(inv.getArgument(0), 3L));
+        when(jwtService.generateAccessToken(any())).thenReturn("tok");
+        when(jwtService.generateRefreshToken()).thenReturn("ref");
+        when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        AuthResponse resp = authService.register(req);
+
+        assertThat(resp.user().role()).isEqualTo(UserRole.INSTRUCTOR);
+    }
+
+    @Test
     @DisplayName("register: duplicate email throws EmailAlreadyExistsException")
     void register_DuplicateEmail_ThrowsEmailAlreadyExistsException() {
         RegisterRequest req = new RegisterRequest("Alice", "alice@test.com", "supersecret123", null);
