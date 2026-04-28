@@ -1,10 +1,12 @@
 package com.example.tfgbackend.waitlist.dto;
 
+import com.example.tfgbackend.booking.dto.ClassSessionSummary;
+
 import java.time.Instant;
 
 public record WaitlistEntryResponse(
         Long id,
-        Long sessionId,
+        ClassSessionSummary classSession,
         Long userId,
         int position,
         Instant joinedAt
