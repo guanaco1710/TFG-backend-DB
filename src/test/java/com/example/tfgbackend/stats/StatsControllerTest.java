@@ -151,6 +151,21 @@ class StatsControllerTest {
         }
 
         @Test
+        @DisplayName("pagination parameters are forwarded to the service")
+        void getAttendanceHistory_WithPagination_ForwardsPageable() throws Exception {
+            PageResponse<AttendanceHistoryEntry> empty = new PageResponse<>(List.of(), 1, 5, 0L, 0, false);
+            when(statsService.getAttendanceHistory(eq(1L), any())).thenReturn(empty);
+
+            mvc.perform(get(BASE + "/me/history")
+                            .param("page", "1")
+                            .param("size", "5")
+                            .with(authentication(customerAuth(1L))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.page").value(1))
+                    .andExpect(jsonPath("$.size").value(5));
+        }
+
+        @Test
         @DisplayName("unauthenticated request returns 401")
         void getAttendanceHistory_Unauthenticated_Returns401() throws Exception {
             mvc.perform(get(BASE + "/me/history"))
