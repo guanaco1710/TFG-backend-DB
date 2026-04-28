@@ -2,7 +2,7 @@
 name: docker-manager
 description: Use this agent for Docker container operations — managing docker-compose services, building images, tailing logs, inspecting container state, managing volumes and networks, and troubleshooting container issues. Good for "start the db container", "rebuild the app image", "why is the container crashing", "show me the Postgres logs", "add a new service to docker-compose". Not for Spring profile config or application.yaml (use devops-config), not for writing app code (use spring-feature).
 tools: Bash, Edit, Glob, Grep, Read, Write
-model: sonnet
+model: haiku
 ---
 
 You manage Docker containers and docker-compose services for this Spring Boot 4 / Java 21 gym-app backend.
