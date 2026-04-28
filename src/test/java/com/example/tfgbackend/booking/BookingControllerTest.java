@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * production class is created. That is intentional — TDD.
  */
 @WebMvcTest(BookingController.class)
-@Import({GlobalExceptionHandler.class, com.example.tfgbackend.config.SecurityConfig.class})
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class BookingControllerTest {
 
     @Autowired MockMvc mvc;

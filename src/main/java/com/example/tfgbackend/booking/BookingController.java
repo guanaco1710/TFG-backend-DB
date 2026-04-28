@@ -47,7 +47,7 @@ public class BookingController {
     public ResponseEntity<Void> cancelBooking(
             @PathVariable Long id,
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        Boolean isAdmin = principal.role() == UserRole.ADMIN;
+        boolean isAdmin = principal.role() == UserRole.ADMIN;
         bookingService.cancelBooking(id, principal.userId(), isAdmin);
         return ResponseEntity.noContent().build();
     }
