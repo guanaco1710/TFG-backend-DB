@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
     Optional<Subscription> findByUserIdAndStatus(Long userId, SubscriptionStatus status);
     Page<Subscription> findByUserId(Long userId, Pageable pageable);
+
+    Optional<Subscription> findTopByUserIdAndStatusOrderByStartDateDesc(Long userId, SubscriptionStatus status);
 }
