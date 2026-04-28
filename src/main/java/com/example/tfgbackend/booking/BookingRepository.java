@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -36,4 +37,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /** User's booking history filtered by status. */
     Page<Booking> findByUserIdAndStatus(Long userId, BookingStatus status, Pageable pageable);
+
+    long countByUserId(Long userId);
+
+    long countByUserIdAndStatus(Long userId, BookingStatus status);
+
+    long countByUserIdAndBookedAtBetween(Long userId, Instant start, Instant end);
 }
