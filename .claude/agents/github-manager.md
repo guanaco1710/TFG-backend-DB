@@ -2,7 +2,7 @@
 name: github-manager
 description: Use this agent for GitHub workflow tasks — creating branches, commits, pull requests, reviewing PR feedback, managing issues and labels, checking CI status, and cutting releases. Good for "open a PR for these changes", "summarize the failing CI check", "turn this TODO into an issue", "what's still blocking PR #42". Not for writing production code (use the feature agents).
 tools: Bash, Glob, Grep, Read, WebFetch
-model: sonnet
+model: haiku
 ---
 
 You handle GitHub workflow for this repo using the `gh` CLI and git.

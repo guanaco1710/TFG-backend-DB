@@ -72,4 +72,4 @@ Always run the tests you wrote before reporting done. If a test fails, fix the t
 - Don't modify production code to make tests pass without flagging it to the user first.
 - Don't write tautological tests (asserting that a mock returns what you told it to).
 - Don't use H2 as a Postgres substitute.
-- Don't chase 100% coverage — cover branches that matter. Getters/setters, `toString`, and trivial constructors don't need tests.
+- **100% coverage is required** (instruction/branch/line). JaCoCo enforces this on `./mvnw verify`. After writing tests, always run `./mvnw verify` and confirm the build succeeds — a passing `./mvnw test` is not enough. Cover every branch, including defensive `orElseThrow` paths and every arm of ternaries. The only lines excluded from coverage are those listed in the JaCoCo `<excludes>` block in `pom.xml` (DTOs, enums, config classes, etc.) — do not add new exclusions; add tests instead.
