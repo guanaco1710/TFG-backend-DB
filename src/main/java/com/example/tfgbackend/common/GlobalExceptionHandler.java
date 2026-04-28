@@ -12,6 +12,7 @@ import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
+import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
 import com.example.tfgbackend.common.exception.WaitlistNotPermittedException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,6 +65,11 @@ public class GlobalExceptionHandler {
     ResponseEntity<Map<String, Object>> handleInvalidResetToken(
             InvalidResetTokenException ex, HttpServletRequest req) {
         return error(HttpStatus.UNAUTHORIZED, "InvalidResetToken", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "UserNotFound", ex.getMessage(), req);
     }
 
     @ExceptionHandler(BookingNotFoundException.class)
