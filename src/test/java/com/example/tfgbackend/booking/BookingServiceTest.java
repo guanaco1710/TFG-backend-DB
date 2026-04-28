@@ -218,6 +218,46 @@ class BookingServiceTest {
 
             verify(bookingRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("user not found throws RuntimeException")
+        void createBooking_UserNotFound_ThrowsRuntimeException() {
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookingService.createBooking(1L, 100L))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("User not found: 1");
+
+            verify(bookingRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("session with null gym returns null gymName in response")
+        void createBooking_SessionWithNullGym_ReturnsNullGymName() {
+            ClassSession noGymSession = ClassSession.builder()
+                    .startTime(LocalDateTime.now().plusDays(1))
+                    .durationMinutes(45).maxCapacity(10).room("1A")
+                    .status(SessionStatus.SCHEDULED)
+                    .classType(spinning).gym(null).build();
+            setId(noGymSession, 200L);
+
+            when(classSessionRepository.findById(200L)).thenReturn(Optional.of(noGymSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 200L)).thenReturn(Optional.empty());
+            when(bookingRepository.countConfirmedBySessionId(200L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(bookingRepository.save(any())).thenAnswer(inv -> {
+                Booking b = inv.getArgument(0);
+                setId(b, 300L);
+                return b;
+            });
+
+            BookingResponse response = bookingService.createBooking(1L, 200L);
+
+            assertThat(response.classSession().gymName()).isNull();
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -578,6 +618,69 @@ class BookingServiceTest {
                     .isInstanceOf(AlreadyOnWaitlistException.class);
 
             verify(waitlistRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("cancelled booking exists allows joining waitlist")
+        void joinWaitlist_OnlyCancelledBookingExists_AllowsJoiningWaitlist() {
+            Booking cancelled = buildBooking(50L, alice, scheduledSession, BookingStatus.CANCELLED);
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.of(cancelled));
+            when(waitlistRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(waitlistRepository.countBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(waitlistRepository.save(any())).thenAnswer(inv -> {
+                WaitlistEntry e = inv.getArgument(0);
+                setId(e, 52L);
+                return e;
+            });
+
+            WaitlistEntryResponse response = bookingService.joinWaitlist(1L, 100L);
+
+            assertThat(response).isNotNull();
+            verify(waitlistRepository).save(any());
+        }
+
+        @Test
+        @DisplayName("user not found throws RuntimeException")
+        void joinWaitlist_UserNotFound_ThrowsRuntimeException() {
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(waitlistRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(waitlistRepository.countBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookingService.joinWaitlist(1L, 100L))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("User not found: 1");
+
+            verify(waitlistRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("session with null gym returns null gymName in waitlist response")
+        void joinWaitlist_SessionWithNullGym_ReturnsNullGymName() {
+            ClassSession noGymSession = ClassSession.builder()
+                    .startTime(LocalDateTime.now().plusDays(1))
+                    .durationMinutes(45).maxCapacity(10).room("1A")
+                    .status(SessionStatus.SCHEDULED)
+                    .classType(spinning).gym(null).build();
+            setId(noGymSession, 200L);
+
+            when(classSessionRepository.findById(200L)).thenReturn(Optional.of(noGymSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 200L)).thenReturn(Optional.empty());
+            when(waitlistRepository.findByUserIdAndSessionId(1L, 200L)).thenReturn(Optional.empty());
+            when(waitlistRepository.countBySessionId(200L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(waitlistRepository.save(any())).thenAnswer(inv -> {
+                WaitlistEntry e = inv.getArgument(0);
+                setId(e, 55L);
+                return e;
+            });
+
+            WaitlistEntryResponse response = bookingService.joinWaitlist(1L, 200L);
+
+            assertThat(response.classSession().gymName()).isNull();
         }
     }
 

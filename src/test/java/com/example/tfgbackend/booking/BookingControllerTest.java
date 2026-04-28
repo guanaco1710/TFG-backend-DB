@@ -17,6 +17,7 @@ import com.example.tfgbackend.common.exception.ClassFullException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
+import com.example.tfgbackend.common.exception.WaitlistNotPermittedException;
 import com.example.tfgbackend.config.SecurityConfig;
 import com.example.tfgbackend.enums.BookingStatus;
 import com.example.tfgbackend.enums.UserRole;
@@ -540,6 +541,18 @@ class BookingControllerTest {
                             .with(authentication(customerAuth(1L))))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("SessionNotBookable"));
+        }
+
+        @Test
+        @DisplayName("membership plan does not allow waitlist returns 403")
+        void joinWaitlist_WaitlistNotPermitted_Returns403() throws Exception {
+            when(bookingService.joinWaitlist(any(), eq(100L)))
+                    .thenThrow(new WaitlistNotPermittedException());
+
+            mvc.perform(post(SESSIONS_BASE + "/100/waitlist")
+                            .with(authentication(customerAuth(1L))))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error").value("WaitlistNotPermitted"));
         }
     }
 
