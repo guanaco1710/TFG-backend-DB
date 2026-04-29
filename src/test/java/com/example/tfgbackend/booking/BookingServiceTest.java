@@ -17,8 +17,12 @@ import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
 import com.example.tfgbackend.enums.BookingStatus;
 import com.example.tfgbackend.enums.SessionStatus;
+import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.gym.Gym;
+import com.example.tfgbackend.membershipplan.MembershipPlan;
+import com.example.tfgbackend.subscription.Subscription;
+import com.example.tfgbackend.subscription.SubscriptionRepository;
 import com.example.tfgbackend.user.User;
 import com.example.tfgbackend.user.UserRepository;
 import com.example.tfgbackend.waitlist.WaitlistEntry;
@@ -38,7 +42,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,6 +71,7 @@ class BookingServiceTest {
     @Mock ClassSessionRepository classSessionRepository;
     @Mock UserRepository userRepository;
     @Mock WaitlistRepository waitlistRepository;
+    @Mock SubscriptionRepository subscriptionRepository;
 
     @InjectMocks BookingService bookingService;
 
@@ -112,6 +120,17 @@ class BookingServiceTest {
                 .status(SessionStatus.SCHEDULED)
                 .classType(spinning).gym(gymFixture).build();
         setId(fullSession, 102L);
+
+        // Default: alice has an unlimited active subscription (classesPerMonth=null)
+        MembershipPlan unlimitedPlan = MembershipPlan.builder()
+                .name("Unlimited").priceMonthly(BigDecimal.valueOf(50))
+                .classesPerMonth(null).durationMonths(1).build();
+        Subscription activeSub = Subscription.builder()
+                .user(alice).plan(unlimitedPlan).status(SubscriptionStatus.ACTIVE)
+                .startDate(LocalDate.now()).renewalDate(LocalDate.now().plusMonths(1))
+                .classesUsedThisMonth(0).build();
+        lenient().when(subscriptionRepository.findByUserIdAndStatus(eq(1L), eq(SubscriptionStatus.ACTIVE)))
+                .thenReturn(Optional.of(activeSub));
     }
 
     // ---------------------------------------------------------------------------

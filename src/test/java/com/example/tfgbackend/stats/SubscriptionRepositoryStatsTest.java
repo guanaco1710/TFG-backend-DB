@@ -42,11 +42,11 @@ class SubscriptionRepositoryStatsTest extends AbstractRepositoryTest {
 
         basicPlan = em.persistAndFlush(MembershipPlan.builder()
                 .name("Basic").priceMonthly(BigDecimal.valueOf(20))
-                .classesPerMonth(10).build());
+                .classesPerMonth(10).durationMonths(1).build());
 
         premiumPlan = em.persistAndFlush(MembershipPlan.builder()
                 .name("Premium").priceMonthly(BigDecimal.valueOf(50))
-                .classesPerMonth(null).build());
+                .classesPerMonth(null).durationMonths(1).build());
     }
 
     private Subscription persist(User user, MembershipPlan plan, SubscriptionStatus status, LocalDate startDate) {
