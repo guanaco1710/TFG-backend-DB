@@ -1,5 +1,7 @@
 package com.example.tfgbackend.gym.dto;
 
+import java.time.Instant;
+
 public record GymResponse(
         Long id,
         String name,
@@ -7,5 +9,7 @@ public record GymResponse(
         String city,
         String phone,
         String openingHours,
-        boolean active
+        boolean active,
+        Instant createdAt,
+        Instant updatedAt
 ) {}

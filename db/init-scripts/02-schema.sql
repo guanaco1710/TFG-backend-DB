@@ -229,3 +229,11 @@ CREATE TABLE password_reset_tokens (
 );
 
 CREATE INDEX idx_prt_token_hash ON password_reset_tokens(token_hash);
+
+-- -------------------------------------------------------------------------
+-- V7 — duration_months on membership_plan + subscription version
+--      (already inlined into the CREATE TABLE statements above)
+-- V8 — Case-insensitive unique index on gym.name
+-- -------------------------------------------------------------------------
+
+CREATE UNIQUE INDEX gym_name_lower_uq ON gym (lower(name));
