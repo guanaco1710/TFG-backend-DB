@@ -3,69 +3,95 @@ package com.example.tfgbackend.attendance;
 import com.example.tfgbackend.attendance.dto.AttendanceResponse;
 import com.example.tfgbackend.attendance.dto.RecordAttendanceRequest;
 import com.example.tfgbackend.booking.BookingRepository;
+import com.example.tfgbackend.classsession.ClassSession;
 import com.example.tfgbackend.classsession.ClassSessionRepository;
+import com.example.tfgbackend.common.exception.AttendanceNotFoundException;
+import com.example.tfgbackend.common.exception.SessionNotAttendableException;
+import com.example.tfgbackend.common.exception.SessionNotFoundException;
+import com.example.tfgbackend.common.exception.UserNotFoundException;
+import com.example.tfgbackend.enums.SessionStatus;
 import com.example.tfgbackend.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
-/**
- * Business logic for recording and querying class attendance.
- *
- * <p>Stub — full implementation to follow in the green phase.
- */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AttendanceService {
+
+    private static final Set<SessionStatus> ATTENDABLE = Set.of(SessionStatus.ACTIVE, SessionStatus.FINISHED);
 
     private final AttendanceRepository attendanceRepository;
     private final ClassSessionRepository classSessionRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
 
-    /**
-     * Bulk-upsert attendance records for a session.
-     *
-     * <p>Rules:
-     * <ul>
-     *   <li>Session must exist — throws {@code SessionNotFoundException} if not.</li>
-     *   <li>Session must be FINISHED or ACTIVE — throws {@code SessionNotAttendableException}
-     *       for SCHEDULED or CANCELLED.</li>
-     *   <li>Each userId must exist — throws {@code UserNotFoundException} on first missing user.</li>
-     *   <li>If a record already exists for (user, session) it is updated (upsert semantics).</li>
-     *   <li>Links to an existing {@code Booking} for that user+session when one is found.</li>
-     * </ul>
-     *
-     * @param sessionId the session to record attendance for
-     * @param request   the list of (userId, status) entries
-     * @return the created or updated attendance responses
-     */
     @Transactional
     public List<AttendanceResponse> recordAttendance(Long sessionId, RecordAttendanceRequest request) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        ClassSession session = classSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+
+        if (!ATTENDABLE.contains(session.getStatus())) {
+            throw new SessionNotAttendableException(sessionId, session.getStatus());
+        }
+
+        return request.attendances().stream()
+                .map(entry -> {
+                    var user = userRepository.findById(entry.userId())
+                            .orElseThrow(() -> new UserNotFoundException(entry.userId()));
+
+                    Attendance attendance = attendanceRepository
+                            .findByUserIdAndSessionId(entry.userId(), sessionId)
+                            .orElseGet(() -> {
+                                var booking = bookingRepository
+                                        .findByUserIdAndSessionId(entry.userId(), sessionId)
+                                        .orElse(null);
+                                return Attendance.builder()
+                                        .user(user)
+                                        .session(session)
+                                        .booking(booking)
+                                        .build();
+                            });
+
+                    attendance.setStatus(entry.status());
+                    Attendance saved = attendanceRepository.save(attendance);
+                    return toResponse(saved);
+                })
+                .toList();
     }
 
-    /**
-     * Returns all attendance records for a session.
-     *
-     * @param sessionId the session
-     * @return list of attendance responses; empty list if no records yet
-     */
     public List<AttendanceResponse> getSessionAttendance(Long sessionId) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        classSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+
+        return attendanceRepository.findBySessionId(sessionId).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    /**
-     * Deletes a single attendance record.
-     *
-     * @param sessionId    the session the record must belong to
-     * @param attendanceId the record to delete
-     */
     @Transactional
     public void deleteAttendance(Long sessionId, Long attendanceId) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        Attendance attendance = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new AttendanceNotFoundException(attendanceId));
+
+        if (!attendance.getSession().getId().equals(sessionId)) {
+            throw new AttendanceNotFoundException(attendanceId);
+        }
+
+        attendanceRepository.delete(attendance);
+    }
+
+    private AttendanceResponse toResponse(Attendance a) {
+        return new AttendanceResponse(
+                a.getId(),
+                a.getUser().getId(),
+                a.getSession().getId(),
+                a.getStatus(),
+                a.getRecordedAt()
+        );
     }
 }
