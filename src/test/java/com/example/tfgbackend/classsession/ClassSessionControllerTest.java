@@ -9,6 +9,7 @@ import com.example.tfgbackend.classsession.dto.InstructorSummary;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
 import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.common.exception.ClassTypeNotFoundException;
+import com.example.tfgbackend.common.exception.InstructorNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.config.SecurityConfig;
@@ -336,6 +337,20 @@ class ClassSessionControllerTest {
                             .content(validRequestJson()))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("SessionNotBookable"));
+        }
+
+        @Test
+        @DisplayName("instructor not found — returns 404 with InstructorNotFound error")
+        void updateSession_InstructorNotFound_Returns404() throws Exception {
+            when(classSessionService.updateSession(eq(100L), any()))
+                    .thenThrow(new InstructorNotFoundException(999L));
+
+            mvc.perform(put(BASE + "/100")
+                            .with(authentication(adminAuth()))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validRequestJson()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error").value("InstructorNotFound"));
         }
     }
 

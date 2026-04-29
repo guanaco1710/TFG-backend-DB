@@ -442,6 +442,65 @@ class ClassSessionServiceTest {
 
             verify(classSessionRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("null gymId and null instructorId on update — saves session without gym or instructor")
+        void updateSession_NullGymAndInstructor_SavesWithoutGymOrInstructor() {
+            ClassSessionRequest req = new ClassSessionRequest(
+                    10L, null, null,
+                    LocalDateTime.now().plusDays(3),
+                    60, 25, "D4"
+            );
+
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
+            when(classSessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+
+            ClassSessionResponse response = classSessionService.updateSession(100L, req);
+
+            assertThat(response.gym()).isNull();
+            assertThat(response.instructor()).isNull();
+        }
+
+        @Test
+        @DisplayName("gym not found (when gymId provided) on update throws GymNotFoundException")
+        void updateSession_GymIdProvidedButNotFound_ThrowsGymNotFoundException() {
+            ClassSessionRequest req = new ClassSessionRequest(
+                    10L, 999L, null,
+                    LocalDateTime.now().plusDays(1),
+                    45, 20, "A1"
+            );
+
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
+            when(gymRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> classSessionService.updateSession(100L, req))
+                    .isInstanceOf(GymNotFoundException.class);
+
+            verify(classSessionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("instructor not found (when instructorId provided) on update throws InstructorNotFoundException")
+        void updateSession_InstructorIdProvidedButNotFound_ThrowsInstructorNotFoundException() {
+            ClassSessionRequest req = new ClassSessionRequest(
+                    10L, 5L, 999L,
+                    LocalDateTime.now().plusDays(1),
+                    45, 20, "A1"
+            );
+
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
+            when(instructorRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> classSessionService.updateSession(100L, req))
+                    .isInstanceOf(InstructorNotFoundException.class);
+
+            verify(classSessionRepository, never()).save(any());
+        }
     }
 
     // ---------------------------------------------------------------------------
