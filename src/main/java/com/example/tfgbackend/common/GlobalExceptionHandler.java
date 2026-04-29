@@ -1,6 +1,8 @@
 package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
+import com.example.tfgbackend.common.exception.GymNameAlreadyExistsException;
+import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
 import com.example.tfgbackend.common.exception.AttendanceNotFoundException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
@@ -175,6 +177,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MonthlyClassLimitReachedException.class)
     ResponseEntity<Map<String, Object>> handleMonthlyClassLimitReached(MonthlyClassLimitReachedException ex, HttpServletRequest req) {
         return error(HttpStatus.CONFLICT, "MonthlyClassLimitReached", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(GymNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleGymNotFound(GymNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "GymNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(GymNameAlreadyExistsException.class)
+    ResponseEntity<Map<String, Object>> handleGymNameAlreadyExists(GymNameAlreadyExistsException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "GymNameAlreadyExists", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
