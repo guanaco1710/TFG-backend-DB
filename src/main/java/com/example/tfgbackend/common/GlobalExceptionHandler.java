@@ -2,6 +2,7 @@ package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
 import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
+import com.example.tfgbackend.common.exception.AttendanceNotFoundException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
 import com.example.tfgbackend.common.exception.BookingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassFullException;
@@ -9,6 +10,7 @@ import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
 import com.example.tfgbackend.common.exception.InvalidResetTokenException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
+import com.example.tfgbackend.common.exception.SessionNotAttendableException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
@@ -115,6 +117,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WaitlistEntryNotFoundException.class)
     ResponseEntity<Map<String, Object>> handleWaitlistEntryNotFound(WaitlistEntryNotFoundException ex, HttpServletRequest req) {
         return error(HttpStatus.NOT_FOUND, "WaitlistEntryNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(AttendanceNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleAttendanceNotFound(AttendanceNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "AttendanceNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SessionNotAttendableException.class)
+    ResponseEntity<Map<String, Object>> handleSessionNotAttendable(SessionNotAttendableException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "SessionNotAttendable", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
