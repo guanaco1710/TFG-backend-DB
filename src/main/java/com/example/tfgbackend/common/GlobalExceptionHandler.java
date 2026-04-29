@@ -1,8 +1,10 @@
 package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
+import com.example.tfgbackend.common.exception.ClassTypeNotFoundException;
 import com.example.tfgbackend.common.exception.GymNameAlreadyExistsException;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
+import com.example.tfgbackend.common.exception.InstructorNotFoundException;
 import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
 import com.example.tfgbackend.common.exception.AttendanceNotFoundException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
@@ -187,6 +189,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(GymNameAlreadyExistsException.class)
     ResponseEntity<Map<String, Object>> handleGymNameAlreadyExists(GymNameAlreadyExistsException ex, HttpServletRequest req) {
         return error(HttpStatus.CONFLICT, "GymNameAlreadyExists", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(ClassTypeNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleClassTypeNotFound(ClassTypeNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "ClassTypeNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(InstructorNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleInstructorNotFound(InstructorNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "InstructorNotFound", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
