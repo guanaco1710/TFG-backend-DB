@@ -14,6 +14,7 @@ import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
 import com.example.tfgbackend.common.exception.BookingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassFullException;
+import com.example.tfgbackend.common.exception.MonthlyClassLimitReachedException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
@@ -212,6 +213,22 @@ class BookingControllerTest {
                             .content(mapper.writeValueAsString(body)))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("ClassFull"));
+        }
+
+        @Test
+        @DisplayName("monthly class limit reached returns 409")
+        void createBooking_MonthlyLimitReached_Returns409() throws Exception {
+            when(bookingService.createBooking(any(), any()))
+                    .thenThrow(new MonthlyClassLimitReachedException("Monthly class limit of 10 reached"));
+
+            CreateBookingRequest body = new CreateBookingRequest(100L);
+
+            mvc.perform(post(BOOKINGS_BASE)
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(body)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("MonthlyClassLimitReached"));
         }
     }
 

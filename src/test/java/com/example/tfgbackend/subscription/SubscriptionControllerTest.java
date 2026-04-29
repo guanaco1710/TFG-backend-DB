@@ -268,7 +268,7 @@ class SubscriptionControllerTest {
         @DisplayName("no active subscription — returns 404")
         void getMyActiveSubscription_NoActiveSubscription_Returns404() throws Exception {
             when(subscriptionService.getMyActiveSubscription(1L))
-                    .thenThrow(new NoActiveSubscriptionException(1L));
+                    .thenThrow(new NoActiveSubscriptionException("No active subscription for user: 1"));
 
             mvc.perform(get(BASE + "/me")
                             .with(authentication(customerAuth(1L))))

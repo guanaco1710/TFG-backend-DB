@@ -61,7 +61,7 @@ public class SubscriptionService {
 
     public SubscriptionResponse getMyActiveSubscription(Long userId) {
         Subscription sub = subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
-                .orElseThrow(() -> new NoActiveSubscriptionException(userId));
+                .orElseThrow(() -> new NoActiveSubscriptionException("No active subscription for user: " + userId));
         return toResponse(sub);
     }
 

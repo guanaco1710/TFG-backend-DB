@@ -12,6 +12,8 @@ import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
 import com.example.tfgbackend.common.exception.BookingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassFullException;
+import com.example.tfgbackend.common.exception.MonthlyClassLimitReachedException;
+import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
@@ -277,6 +279,74 @@ class BookingServiceTest {
 
             assertThat(response.classSession().gymName()).isNull();
         }
+
+        @Test
+        @DisplayName("capped plan with classes remaining: booking succeeds and counter increments")
+        void createBooking_CappedPlanWithRemainingClasses_SucceedsAndIncrementsCounter() {
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(bookingRepository.save(any())).thenAnswer(inv -> {
+                Booking b = inv.getArgument(0);
+                setId(b, 200L);
+                return b;
+            });
+
+            MembershipPlan cappedPlan = MembershipPlan.builder()
+                    .name("Basic").priceMonthly(BigDecimal.valueOf(20))
+                    .classesPerMonth(10).durationMonths(1).build();
+            Subscription cappedSub = Subscription.builder()
+                    .user(alice).plan(cappedPlan).status(SubscriptionStatus.ACTIVE)
+                    .startDate(LocalDate.now()).renewalDate(LocalDate.now().plusMonths(1))
+                    .classesUsedThisMonth(5).build();
+            when(subscriptionRepository.findByUserIdAndStatus(eq(1L), eq(SubscriptionStatus.ACTIVE)))
+                    .thenReturn(Optional.of(cappedSub));
+
+            bookingService.createBooking(1L, 100L);
+
+            assertThat(cappedSub.getClassesUsedThisMonth()).isEqualTo(6);
+        }
+
+        @Test
+        @DisplayName("no active subscription throws NoActiveSubscriptionException")
+        void createBooking_NoActiveSubscription_ThrowsNoActiveSubscriptionException() {
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(subscriptionRepository.findByUserIdAndStatus(eq(1L), eq(SubscriptionStatus.ACTIVE)))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookingService.createBooking(1L, 100L))
+                    .isInstanceOf(NoActiveSubscriptionException.class);
+
+            verify(bookingRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("monthly class limit reached throws MonthlyClassLimitReachedException")
+        void createBooking_MonthlyLimitReached_ThrowsMonthlyClassLimitReachedException() {
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(bookingRepository.findByUserIdAndSessionId(1L, 100L)).thenReturn(Optional.empty());
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+
+            MembershipPlan cappedPlan = MembershipPlan.builder()
+                    .name("Basic").priceMonthly(BigDecimal.valueOf(20))
+                    .classesPerMonth(10).durationMonths(1).build();
+            Subscription fullSub = Subscription.builder()
+                    .user(alice).plan(cappedPlan).status(SubscriptionStatus.ACTIVE)
+                    .startDate(LocalDate.now()).renewalDate(LocalDate.now().plusMonths(1))
+                    .classesUsedThisMonth(10).build();
+            when(subscriptionRepository.findByUserIdAndStatus(eq(1L), eq(SubscriptionStatus.ACTIVE)))
+                    .thenReturn(Optional.of(fullSub));
+
+            assertThatThrownBy(() -> bookingService.createBooking(1L, 100L))
+                    .isInstanceOf(MonthlyClassLimitReachedException.class);
+
+            verify(bookingRepository, never()).save(any());
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -382,6 +452,26 @@ class BookingServiceTest {
                     .isInstanceOf(BookingAlreadyCancelledException.class);
 
             verify(bookingRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("session already started: cancels but does not decrement class credit")
+        void cancelBooking_SessionAlreadyStarted_DoesNotDecrementClassCredit() {
+            ClassSession pastSession = ClassSession.builder()
+                    .startTime(LocalDateTime.now().minusHours(1))
+                    .durationMinutes(45).maxCapacity(10).room("1A")
+                    .status(SessionStatus.SCHEDULED)
+                    .classType(spinning).gym(gymFixture).build();
+            setId(pastSession, 103L);
+
+            Booking booking = buildBooking(200L, alice, pastSession, BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(200L)).thenReturn(Optional.of(booking));
+            when(waitlistRepository.findBySessionIdOrderByPositionAsc(103L)).thenReturn(List.of());
+
+            bookingService.cancelBooking(200L, 1L, false);
+
+            assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+            verify(subscriptionRepository, never()).findByUserIdAndStatus(any(), any());
         }
     }
 
