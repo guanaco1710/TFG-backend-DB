@@ -9,9 +9,17 @@ import com.example.tfgbackend.common.exception.ClassFullException;
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
 import com.example.tfgbackend.common.exception.InvalidResetTokenException;
+import com.example.tfgbackend.common.exception.MembershipPlanInUseException;
+import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
+import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
+import com.example.tfgbackend.common.exception.MonthlyClassLimitReachedException;
+import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotAttendableException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
+import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
+import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
+import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
 import com.example.tfgbackend.common.exception.TokenRevokedException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
@@ -127,6 +135,46 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SessionNotAttendableException.class)
     ResponseEntity<Map<String, Object>> handleSessionNotAttendable(SessionNotAttendableException ex, HttpServletRequest req) {
         return error(HttpStatus.CONFLICT, "SessionNotAttendable", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MembershipPlanNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleMembershipPlanNotFound(MembershipPlanNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "MembershipPlanNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MembershipPlanInUseException.class)
+    ResponseEntity<Map<String, Object>> handleMembershipPlanInUse(MembershipPlanInUseException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "MembershipPlanInUse", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MembershipPlanInactiveException.class)
+    ResponseEntity<Map<String, Object>> handleMembershipPlanInactive(MembershipPlanInactiveException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "MembershipPlanInactive", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SubscriptionNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleSubscriptionNotFound(SubscriptionNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "SubscriptionNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SubscriptionAlreadyActiveException.class)
+    ResponseEntity<Map<String, Object>> handleSubscriptionAlreadyActive(SubscriptionAlreadyActiveException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "SubscriptionAlreadyActive", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SubscriptionNotActiveException.class)
+    ResponseEntity<Map<String, Object>> handleSubscriptionNotActive(SubscriptionNotActiveException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "SubscriptionNotActive", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(NoActiveSubscriptionException.class)
+    ResponseEntity<Map<String, Object>> handleNoActiveSubscription(NoActiveSubscriptionException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "NoActiveSubscription", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MonthlyClassLimitReachedException.class)
+    ResponseEntity<Map<String, Object>> handleMonthlyClassLimitReached(MonthlyClassLimitReachedException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "MonthlyClassLimitReached", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

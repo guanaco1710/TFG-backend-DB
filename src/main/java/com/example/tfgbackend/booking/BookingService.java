@@ -11,11 +11,16 @@ import com.example.tfgbackend.common.exception.AlreadyOnWaitlistException;
 import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
 import com.example.tfgbackend.common.exception.BookingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassFullException;
+import com.example.tfgbackend.common.exception.MonthlyClassLimitReachedException;
+import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
 import com.example.tfgbackend.enums.BookingStatus;
 import com.example.tfgbackend.enums.SessionStatus;
+import com.example.tfgbackend.enums.SubscriptionStatus;
+import com.example.tfgbackend.subscription.Subscription;
+import com.example.tfgbackend.subscription.SubscriptionRepository;
 import com.example.tfgbackend.user.User;
 import com.example.tfgbackend.user.UserRepository;
 import com.example.tfgbackend.waitlist.WaitlistEntry;
@@ -40,6 +45,7 @@ public class BookingService {
     private final ClassSessionRepository classSessionRepository;
     private final UserRepository userRepository;
     private final WaitlistRepository waitlistRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     // Optimistic locking on ClassSession.version prevents two concurrent bookings from
     // both seeing capacity available. The service also does a transactional count check
@@ -65,6 +71,16 @@ public class BookingService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        // Class-limit enforcement: verify user has an active subscription with remaining classes
+        Subscription sub = subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+                .orElseThrow(() -> new NoActiveSubscriptionException("No active subscription for user: " + userId));
+        Integer cap = sub.getPlan().getClassesPerMonth();
+        if (cap != null && sub.getClassesUsedThisMonth() >= cap) {
+            throw new MonthlyClassLimitReachedException("Monthly class limit of " + cap + " reached");
+        }
+        sub.setClassesUsedThisMonth(sub.getClassesUsedThisMonth() + 1);
+        // sub is a managed entity — the update is flushed automatically within this transaction
 
         Booking booking = Booking.builder()
                 .user(user)
@@ -92,6 +108,12 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+
+        // Refund the class credit if the session hasn't started yet
+        if (booking.getSession().getStartTime().isAfter(java.time.LocalDateTime.now())) {
+            subscriptionRepository.findByUserIdAndStatus(booking.getUser().getId(), SubscriptionStatus.ACTIVE)
+                    .ifPresent(s -> s.setClassesUsedThisMonth(Math.max(0, s.getClassesUsedThisMonth() - 1)));
+        }
 
         // Promote the first waitlist entry to a CONFIRMED booking when a spot opens up
         List<WaitlistEntry> waitlist = waitlistRepository

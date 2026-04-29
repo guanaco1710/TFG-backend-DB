@@ -41,4 +41,7 @@ public class MembershipPlan extends BaseEntity {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    @Column(name = "duration_months", nullable = false)
+    private Integer durationMonths;
 }

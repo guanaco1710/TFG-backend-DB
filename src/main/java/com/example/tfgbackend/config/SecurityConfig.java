@@ -1,6 +1,7 @@
 package com.example.tfgbackend.config;
 
 import com.example.tfgbackend.auth.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -58,5 +59,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
+    }
+
+    /**
+     * Jackson 2 ObjectMapper bean — Spring Boot 4 auto-configures Jackson 3, so tests
+     * that @Autowired com.fasterxml.jackson.databind.ObjectMapper need this explicit bean.
+     */
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }

@@ -160,6 +160,7 @@ CREATE TABLE membership_plan (
     description        TEXT,
     price_monthly      NUMERIC(10, 2) NOT NULL,
     classes_per_month  INTEGER,
+    duration_months    INTEGER        NOT NULL DEFAULT 1,
     allows_waitlist    BOOLEAN        NOT NULL DEFAULT TRUE,
     active             BOOLEAN        NOT NULL DEFAULT TRUE,
     version            BIGINT         NOT NULL DEFAULT 0,

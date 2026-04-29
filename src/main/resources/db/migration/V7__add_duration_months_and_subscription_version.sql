@@ -1,0 +1,2 @@
+ALTER TABLE membership_plan ADD COLUMN duration_months INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE subscription ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
