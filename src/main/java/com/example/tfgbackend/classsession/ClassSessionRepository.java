@@ -41,4 +41,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
     /** Count bookable (SCHEDULED) future sessions for a class type. */
     long countByClassTypeIdAndStatusAndStartTimeAfter(
             Long classTypeId, SessionStatus status, LocalDateTime after);
+
+    /** Guard for ClassType hard-delete: true if any session references this type. */
+    boolean existsByClassTypeId(Long classTypeId);
 }
