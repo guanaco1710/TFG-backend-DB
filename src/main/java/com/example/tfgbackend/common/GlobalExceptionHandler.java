@@ -1,6 +1,8 @@
 package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
+import com.example.tfgbackend.common.exception.ClassTypeInUseException;
+import com.example.tfgbackend.common.exception.ClassTypeNameAlreadyExistsException;
 import com.example.tfgbackend.common.exception.ClassTypeNotFoundException;
 import com.example.tfgbackend.common.exception.GymNameAlreadyExistsException;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
@@ -195,6 +197,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ClassTypeNotFoundException.class)
     ResponseEntity<Map<String, Object>> handleClassTypeNotFound(ClassTypeNotFoundException ex, HttpServletRequest req) {
         return error(HttpStatus.NOT_FOUND, "ClassTypeNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(ClassTypeNameAlreadyExistsException.class)
+    ResponseEntity<Map<String, Object>> handleClassTypeNameAlreadyExists(
+            ClassTypeNameAlreadyExistsException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "ClassTypeNameAlreadyExists", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(ClassTypeInUseException.class)
+    ResponseEntity<Map<String, Object>> handleClassTypeInUse(ClassTypeInUseException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "ClassTypeInUse", ex.getMessage(), req);
     }
 
     @ExceptionHandler(InstructorNotFoundException.class)
