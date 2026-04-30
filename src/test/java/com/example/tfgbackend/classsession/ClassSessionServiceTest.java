@@ -201,6 +201,27 @@ class ClassSessionServiceTest {
         }
 
         @Test
+        @DisplayName("instructorId provided but user is not an instructor throws InstructorNotFoundException")
+        void createSession_InstructorIdProvidedButUserNotInstructor_ThrowsInstructorNotFoundException() {
+            ClassSessionRequest req = new ClassSessionRequest(
+                    10L, 5L, 999L,
+                    LocalDateTime.now().plusDays(1),
+                    45, 20, "A1"
+            );
+            User customer = User.builder().name("Alice").email("alice@test.com")
+                    .passwordHash("hash").role(UserRole.CUSTOMER).build();
+
+            when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
+            when(userRepository.findById(999L)).thenReturn(Optional.of(customer));
+
+            assertThatThrownBy(() -> classSessionService.createSession(req))
+                    .isInstanceOf(InstructorNotFoundException.class);
+
+            verify(classSessionRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("null gymId and null instructorId — saves session without gym or instructor")
         void createSession_NullGymAndInstructor_SavesWithoutGymOrInstructor() {
             ClassSessionRequest req = new ClassSessionRequest(
@@ -480,6 +501,28 @@ class ClassSessionServiceTest {
 
             assertThatThrownBy(() -> classSessionService.updateSession(100L, req))
                     .isInstanceOf(GymNotFoundException.class);
+
+            verify(classSessionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("instructorId provided but user is not an instructor on update throws InstructorNotFoundException")
+        void updateSession_InstructorIdProvidedButUserNotInstructor_ThrowsInstructorNotFoundException() {
+            ClassSessionRequest req = new ClassSessionRequest(
+                    10L, 5L, 999L,
+                    LocalDateTime.now().plusDays(1),
+                    45, 20, "A1"
+            );
+            User customer = User.builder().name("Alice").email("alice@test.com")
+                    .passwordHash("hash").role(UserRole.CUSTOMER).build();
+
+            when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
+            when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
+            when(userRepository.findById(999L)).thenReturn(Optional.of(customer));
+
+            assertThatThrownBy(() -> classSessionService.updateSession(100L, req))
+                    .isInstanceOf(InstructorNotFoundException.class);
 
             verify(classSessionRepository, never()).save(any());
         }
