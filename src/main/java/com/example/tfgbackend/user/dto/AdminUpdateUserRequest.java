@@ -6,5 +6,6 @@ public record AdminUpdateUserRequest(
         String name,
         String phone,
         UserRole role,
-        Boolean active
+        Boolean active,
+        String specialty
 ) {}

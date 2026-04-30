@@ -58,4 +58,7 @@ public class User extends BaseEntity {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    @Column(name = "specialty", length = 100)
+    private String specialty;
 }
