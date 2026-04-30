@@ -21,6 +21,7 @@ import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotAttendableException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
+import com.example.tfgbackend.common.exception.SpecialtyNotAllowedException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
@@ -199,6 +200,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InstructorNotFoundException.class)
     ResponseEntity<Map<String, Object>> handleInstructorNotFound(InstructorNotFoundException ex, HttpServletRequest req) {
         return error(HttpStatus.NOT_FOUND, "InstructorNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SpecialtyNotAllowedException.class)
+    ResponseEntity<Map<String, Object>> handleSpecialtyNotAllowed(SpecialtyNotAllowedException ex, HttpServletRequest req) {
+        return error(HttpStatus.BAD_REQUEST, "SpecialtyNotAllowed", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

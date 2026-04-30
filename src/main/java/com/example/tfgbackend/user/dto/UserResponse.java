@@ -11,5 +11,6 @@ public record UserResponse(
         String phone,
         UserRole role,
         boolean active,
-        Instant createdAt
+        Instant createdAt,
+        String specialty
 ) {}

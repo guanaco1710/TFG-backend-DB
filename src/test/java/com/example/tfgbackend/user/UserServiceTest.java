@@ -1,6 +1,7 @@
 package com.example.tfgbackend.user;
 
 import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.SpecialtyNotAllowedException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.user.dto.AdminUpdateUserRequest;
@@ -84,7 +85,7 @@ class UserServiceTest {
         User user = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UpdateUserRequest req = new UpdateUserRequest("Alice Updated", "600000002");
+        UpdateUserRequest req = new UpdateUserRequest("Alice Updated", "600000002", null);
         UserResponse resp = userService.updateMe(1L, req);
 
         assertThat(resp.name()).isEqualTo("Alice Updated");
@@ -97,7 +98,7 @@ class UserServiceTest {
         User user = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UpdateUserRequest req = new UpdateUserRequest("New Name", null);
+        UpdateUserRequest req = new UpdateUserRequest("New Name", null, null);
         UserResponse resp = userService.updateMe(1L, req);
 
         assertThat(resp.name()).isEqualTo("New Name");
@@ -110,7 +111,7 @@ class UserServiceTest {
         User user = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UpdateUserRequest req = new UpdateUserRequest(null, "700000000");
+        UpdateUserRequest req = new UpdateUserRequest(null, "700000000", null);
         UserResponse resp = userService.updateMe(1L, req);
 
         assertThat(resp.name()).isEqualTo("Alice");
@@ -122,9 +123,30 @@ class UserServiceTest {
     void updateMe_UnknownUser_ThrowsUserNotFoundException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updateMe(99L, new UpdateUserRequest("X", null)))
+        assertThatThrownBy(() -> userService.updateMe(99L, new UpdateUserRequest("X", null, null)))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("updateMe: instructor can set their own specialty")
+    void updateMe_SpecialtyProvided_InstructorUser_SetsSpecialty() throws Exception {
+        User instructor = buildUser(1L, "Jorge", "jorge@test.com", UserRole.INSTRUCTOR, true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+
+        UserResponse resp = userService.updateMe(1L, new UpdateUserRequest(null, null, "Spinning"));
+
+        assertThat(resp.specialty()).isEqualTo("Spinning");
+    }
+
+    @Test
+    @DisplayName("updateMe: non-instructor setting specialty throws SpecialtyNotAllowedException")
+    void updateMe_SpecialtyProvided_NonInstructorUser_ThrowsSpecialtyNotAllowedException() throws Exception {
+        User customer = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
+
+        assertThatThrownBy(() -> userService.updateMe(1L, new UpdateUserRequest(null, null, "Spinning")))
+                .isInstanceOf(SpecialtyNotAllowedException.class);
     }
 
     // ---------------------------------------------------------------------------
@@ -186,7 +208,7 @@ class UserServiceTest {
         User user = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        AdminUpdateUserRequest req = new AdminUpdateUserRequest("Admin Alice", "700000000", UserRole.INSTRUCTOR, false);
+        AdminUpdateUserRequest req = new AdminUpdateUserRequest("Admin Alice", "700000000", UserRole.INSTRUCTOR, false, null);
         UserResponse resp = userService.adminUpdateUser(1L, req);
 
         assertThat(resp.name()).isEqualTo("Admin Alice");
@@ -201,7 +223,7 @@ class UserServiceTest {
         User user = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        AdminUpdateUserRequest req = new AdminUpdateUserRequest(null, null, null, null);
+        AdminUpdateUserRequest req = new AdminUpdateUserRequest(null, null, null, null, null);
         UserResponse resp = userService.adminUpdateUser(1L, req);
 
         assertThat(resp.name()).isEqualTo("Alice");
@@ -214,11 +236,86 @@ class UserServiceTest {
     void adminUpdateUser_UnknownUser_ThrowsUserNotFoundException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null);
+        AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null, null);
 
         assertThatThrownBy(() -> userService.adminUpdateUser(99L, req))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: specialty set on already-instructor user (no role change) stores it")
+    void adminUpdateUser_SpecialtyProvided_ExistingInstructor_SetsSpecialty() throws Exception {
+        User instructor = buildUser(1L, "Jorge", "jorge@test.com", UserRole.INSTRUCTOR, true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+
+        UserResponse resp = userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, null, null, "Spinning"));
+
+        assertThat(resp.specialty()).isEqualTo("Spinning");
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: specialty set while promoting user to INSTRUCTOR in same request stores it")
+    void adminUpdateUser_SpecialtyProvided_UserPromotedToInstructor_SetsSpecialty() throws Exception {
+        User customer = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
+
+        UserResponse resp = userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, UserRole.INSTRUCTOR, null, "Yoga"));
+
+        assertThat(resp.specialty()).isEqualTo("Yoga");
+        assertThat(resp.role()).isEqualTo(UserRole.INSTRUCTOR);
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: specialty set on customer (no role change) throws SpecialtyNotAllowedException")
+    void adminUpdateUser_SpecialtyProvided_CustomerUser_ThrowsSpecialtyNotAllowedException() throws Exception {
+        User customer = buildUser(1L, "Alice", "alice@test.com", UserRole.CUSTOMER, true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
+
+        assertThatThrownBy(() -> userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, null, null, "Spinning")))
+                .isInstanceOf(SpecialtyNotAllowedException.class);
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: specialty set while demoting instructor throws SpecialtyNotAllowedException")
+    void adminUpdateUser_SpecialtyProvided_InstructorDemoted_ThrowsSpecialtyNotAllowedException() throws Exception {
+        User instructor = buildUser(1L, "Jorge", "jorge@test.com", UserRole.INSTRUCTOR, true);
+        instructor.setSpecialty("Spinning");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+
+        assertThatThrownBy(() -> userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, UserRole.CUSTOMER, null, "Spinning")))
+                .isInstanceOf(SpecialtyNotAllowedException.class);
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: demoting instructor with no specialty in request auto-clears specialty")
+    void adminUpdateUser_SpecialtyNull_InstructorDemoted_ClearsSpecialty() throws Exception {
+        User instructor = buildUser(1L, "Jorge", "jorge@test.com", UserRole.INSTRUCTOR, true);
+        instructor.setSpecialty("Spinning");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+
+        UserResponse resp = userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, UserRole.ADMIN, null, null));
+
+        assertThat(resp.specialty()).isNull();
+        assertThat(resp.role()).isEqualTo(UserRole.ADMIN);
+    }
+
+    @Test
+    @DisplayName("adminUpdateUser: instructor with no specialty in request keeps existing specialty unchanged")
+    void adminUpdateUser_SpecialtyNull_InstructorStaysInstructor_KeepsSpecialty() throws Exception {
+        User instructor = buildUser(1L, "Jorge", "jorge@test.com", UserRole.INSTRUCTOR, true);
+        instructor.setSpecialty("Spinning");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));
+
+        UserResponse resp = userService.adminUpdateUser(1L,
+                new AdminUpdateUserRequest(null, null, null, null, null));
+
+        assertThat(resp.specialty()).isEqualTo("Spinning");
     }
 
     // ---------------------------------------------------------------------------

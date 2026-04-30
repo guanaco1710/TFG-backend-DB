@@ -12,10 +12,11 @@ import com.example.tfgbackend.common.exception.InstructorNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.enums.SessionStatus;
+import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.gym.Gym;
 import com.example.tfgbackend.gym.GymRepository;
-import com.example.tfgbackend.instructor.Instructor;
-import com.example.tfgbackend.instructor.InstructorRepository;
+import com.example.tfgbackend.user.User;
+import com.example.tfgbackend.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,13 +53,13 @@ class ClassSessionServiceTest {
     @Mock BookingRepository bookingRepository;
     @Mock ClassTypeRepository classTypeRepository;
     @Mock GymRepository gymRepository;
-    @Mock InstructorRepository instructorRepository;
+    @Mock UserRepository userRepository;
 
     @InjectMocks ClassSessionService classSessionService;
 
     private ClassType spinning;
     private Gym gym;
-    private Instructor instructor;
+    private User instructor;
     private ClassSession scheduledSession;
     private ClassSession cancelledSession;
 
@@ -70,7 +71,8 @@ class ClassSessionServiceTest {
         gym = Gym.builder().name("Downtown Gym").address("Main St 1").city("Madrid").active(true).build();
         setId(gym, 5L);
 
-        instructor = Instructor.builder().name("John Doe").specialty("Spinning").build();
+        instructor = User.builder().name("John Doe").email("johndoe@gym.com").passwordHash("hash")
+                .role(UserRole.INSTRUCTOR).specialty("Spinning").build();
         setId(instructor, 3L);
 
         scheduledSession = ClassSession.builder()
@@ -117,7 +119,7 @@ class ClassSessionServiceTest {
 
             when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(instructorRepository.findById(3L)).thenReturn(Optional.of(instructor));
+            when(userRepository.findById(3L)).thenReturn(Optional.of(instructor));
             when(classSessionRepository.save(any())).thenAnswer(inv -> {
                 ClassSession s = inv.getArgument(0);
                 setId(s, 100L);
@@ -190,7 +192,7 @@ class ClassSessionServiceTest {
 
             when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(instructorRepository.findById(999L)).thenReturn(Optional.empty());
+            when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> classSessionService.createSession(req))
                     .isInstanceOf(InstructorNotFoundException.class);
@@ -378,7 +380,7 @@ class ClassSessionServiceTest {
             when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
             when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(instructorRepository.findById(3L)).thenReturn(Optional.of(instructor));
+            when(userRepository.findById(3L)).thenReturn(Optional.of(instructor));
             when(classSessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(5L);
 
@@ -494,7 +496,7 @@ class ClassSessionServiceTest {
             when(classSessionRepository.findById(100L)).thenReturn(Optional.of(scheduledSession));
             when(classTypeRepository.findById(10L)).thenReturn(Optional.of(spinning));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(instructorRepository.findById(999L)).thenReturn(Optional.empty());
+            when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> classSessionService.updateSession(100L, req))
                     .isInstanceOf(InstructorNotFoundException.class);

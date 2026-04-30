@@ -28,32 +28,29 @@ public class DataInitializer implements CommandLineRunner {
               ('HIIT', 'High-intensity interval training', 'INTERMEDIATE')
             """);
 
+        // Instructors are now app_user rows with role INSTRUCTOR — no separate instructor table.
         jdbc.execute("""
-            INSERT INTO instructor (name, specialty) VALUES
-              ('Jorge Martínez', 'Spinning'),
-              ('Elena García', 'Yoga'),
-              ('Marc Puig', 'CrossFit'),
-              ('Laura Sánchez', 'Pilates')
+            INSERT INTO app_user (name, email, phone, password_hash, role, active, specialty) VALUES
+              ('Alice Smith',   'alice@gymbook.com',   '600111001', '$2a$10$placeholder1', 'CUSTOMER',   true,  null),
+              ('Bob Jones',     'bob@gymbook.com',     '600111002', '$2a$10$placeholder2', 'CUSTOMER',   true,  null),
+              ('Carol White',   'carol@gymbook.com',   '600111003', '$2a$10$placeholder3', 'CUSTOMER',   true,  null),
+              ('Admin User',    'admin@gymbook.com',   '600000000', '$2a$10$placeholder4', 'ADMIN',      true,  null),
+              ('Jorge Martínez','jorge@gymbook.com',   '600222001', '$2a$10$placeholder5', 'INSTRUCTOR', true,  'Spinning'),
+              ('Elena García',  'elena@gymbook.com',   '600222002', '$2a$10$placeholder6', 'INSTRUCTOR', true,  'Yoga'),
+              ('Marc Puig',     'marc@gymbook.com',    '600222003', '$2a$10$placeholder7', 'INSTRUCTOR', true,  'CrossFit'),
+              ('Laura Sánchez', 'laura@gymbook.com',   '600222004', '$2a$10$placeholder8', 'INSTRUCTOR', true,  'Pilates')
             """);
 
-        jdbc.execute("""
-            INSERT INTO app_user (name, email, phone, password_hash, role, active) VALUES
-              ('Alice Smith',   'alice@gymbook.com',   '600111001', '$2a$10$placeholder1', 'CUSTOMER',   true),
-              ('Bob Jones',     'bob@gymbook.com',     '600111002', '$2a$10$placeholder2', 'CUSTOMER',   true),
-              ('Carol White',   'carol@gymbook.com',   '600111003', '$2a$10$placeholder3', 'CUSTOMER',   true),
-              ('Admin User',    'admin@gymbook.com',   '600000000', '$2a$10$placeholder4', 'ADMIN',      true),
-              ('Jorge Martínez','jorge@gymbook.com',   '600222001', '$2a$10$placeholder5', 'INSTRUCTOR', true)
-            """);
-
+        // instructor_id now references app_user.id; users 5-8 are the instructors.
         jdbc.execute("""
             INSERT INTO class_session (start_time, duration_minutes, max_capacity, room, status, class_type_id, instructor_id) VALUES
-              (NOW() + INTERVAL '1' DAY,     45, 12, '1A', 'SCHEDULED', 1, 1),
-              (NOW() + INTERVAL '1' DAY,     60,  8, '2B', 'SCHEDULED', 2, 2),
-              (NOW() + INTERVAL '2' DAY,     60, 15, '1A', 'SCHEDULED', 3, 3),
-              (NOW() + INTERVAL '2' DAY,     50, 10, '2A', 'SCHEDULED', 4, 4),
-              (NOW() + INTERVAL '3' DAY,     45, 12, '1A', 'SCHEDULED', 5, 1),
-              (NOW() - INTERVAL '1' DAY,     45, 12, '1A', 'FINISHED',  1, 1),
-              (NOW() - INTERVAL '2' DAY,     60,  8, '2B', 'FINISHED',  2, 2)
+              (NOW() + INTERVAL '1' DAY,     45, 12, '1A', 'SCHEDULED', 1, 5),
+              (NOW() + INTERVAL '1' DAY,     60,  8, '2B', 'SCHEDULED', 2, 6),
+              (NOW() + INTERVAL '2' DAY,     60, 15, '1A', 'SCHEDULED', 3, 7),
+              (NOW() + INTERVAL '2' DAY,     50, 10, '2A', 'SCHEDULED', 4, 8),
+              (NOW() + INTERVAL '3' DAY,     45, 12, '1A', 'SCHEDULED', 5, 5),
+              (NOW() - INTERVAL '1' DAY,     45, 12, '1A', 'FINISHED',  1, 5),
+              (NOW() - INTERVAL '2' DAY,     60,  8, '2B', 'FINISHED',  2, 6)
             """);
 
         jdbc.execute("""
@@ -85,6 +82,6 @@ public class DataInitializer implements CommandLineRunner {
               (4, 'Great energy', NOW(), 2, 6)
             """);
 
-        log.info("Sample data loaded: 5 class types, 4 instructors, 5 users, 7 sessions, 6 bookings, 1 waitlist, 4 notifications, 2 ratings.");
+        log.info("Sample data loaded: 5 class types, 8 users (4 instructors), 7 sessions, 6 bookings, 1 waitlist, 4 notifications, 2 ratings.");
     }
 }

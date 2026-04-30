@@ -4,6 +4,7 @@ import com.example.tfgbackend.auth.AuthenticatedUser;
 import com.example.tfgbackend.auth.JwtService;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
 import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.SpecialtyNotAllowedException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.config.SecurityConfig;
 import com.example.tfgbackend.enums.UserRole;
@@ -58,10 +59,10 @@ class UserControllerTest {
     private static final String BASE = "/api/v1/users";
 
     private static final UserResponse ALICE_RESPONSE = new UserResponse(
-            1L, "Alice", "alice@test.com", "600000001", UserRole.CUSTOMER, true, Instant.now());
+            1L, "Alice", "alice@test.com", "600000001", UserRole.CUSTOMER, true, Instant.now(), null);
 
     private static final UserResponse ADMIN_RESPONSE = new UserResponse(
-            99L, "Admin", "admin@test.com", null, UserRole.ADMIN, true, Instant.now());
+            99L, "Admin", "admin@test.com", null, UserRole.ADMIN, true, Instant.now(), null);
 
     // ---------------------------------------------------------------------------
     // Auth helpers
@@ -119,9 +120,9 @@ class UserControllerTest {
         @Test
         @DisplayName("authenticated user updates profile returns 200")
         void updateMe_ValidRequest_Returns200() throws Exception {
-            UpdateUserRequest req = new UpdateUserRequest("Alice Updated", "600000002");
+            UpdateUserRequest req = new UpdateUserRequest("Alice Updated", "600000002", null);
             UserResponse updated = new UserResponse(
-                    1L, "Alice Updated", "alice@test.com", "600000002", UserRole.CUSTOMER, true, Instant.now());
+                    1L, "Alice Updated", "alice@test.com", "600000002", UserRole.CUSTOMER, true, Instant.now(), null);
 
             when(userService.updateMe(eq(1L), any())).thenReturn(updated);
 
@@ -137,12 +138,26 @@ class UserControllerTest {
         @Test
         @DisplayName("unauthenticated returns 401")
         void updateMe_Unauthenticated_Returns401() throws Exception {
-            UpdateUserRequest req = new UpdateUserRequest("Alice", null);
+            UpdateUserRequest req = new UpdateUserRequest("Alice", null, null);
 
             mvc.perform(patch(BASE + "/me")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(req)))
                     .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("non-instructor setting specialty returns 400 SpecialtyNotAllowed")
+        void updateMe_SpecialtyNotAllowed_Returns400() throws Exception {
+            UpdateUserRequest req = new UpdateUserRequest(null, null, "Spinning");
+            when(userService.updateMe(eq(1L), any())).thenThrow(new SpecialtyNotAllowedException());
+
+            mvc.perform(patch(BASE + "/me")
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("SpecialtyNotAllowed"));
         }
     }
 
@@ -259,9 +274,9 @@ class UserControllerTest {
         @Test
         @DisplayName("admin updates user returns 200 with updated body")
         void adminUpdateUser_Admin_Returns200() throws Exception {
-            AdminUpdateUserRequest req = new AdminUpdateUserRequest("New Name", null, UserRole.INSTRUCTOR, null);
+            AdminUpdateUserRequest req = new AdminUpdateUserRequest("New Name", null, UserRole.INSTRUCTOR, null, null);
             UserResponse updated = new UserResponse(
-                    1L, "New Name", "alice@test.com", "600000001", UserRole.INSTRUCTOR, true, Instant.now());
+                    1L, "New Name", "alice@test.com", "600000001", UserRole.INSTRUCTOR, true, Instant.now(), null);
 
             when(userService.adminUpdateUser(eq(1L), any())).thenReturn(updated);
 
@@ -277,7 +292,7 @@ class UserControllerTest {
         @Test
         @DisplayName("user not found returns 404")
         void adminUpdateUser_NotFound_Returns404() throws Exception {
-            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null);
+            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null, null);
             when(userService.adminUpdateUser(eq(999L), any())).thenThrow(new UserNotFoundException(999L));
 
             mvc.perform(patch(BASE + "/999")
@@ -291,7 +306,7 @@ class UserControllerTest {
         @Test
         @DisplayName("customer is forbidden — returns 403")
         void adminUpdateUser_Customer_Returns403() throws Exception {
-            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null);
+            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null, null);
 
             mvc.perform(patch(BASE + "/1")
                             .with(authentication(customerAuth(1L)))
@@ -303,12 +318,26 @@ class UserControllerTest {
         @Test
         @DisplayName("unauthenticated returns 401")
         void adminUpdateUser_Unauthenticated_Returns401() throws Exception {
-            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null);
+            AdminUpdateUserRequest req = new AdminUpdateUserRequest("Name", null, null, null, null);
 
             mvc.perform(patch(BASE + "/1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(req)))
                     .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("specialty on non-instructor returns 400 SpecialtyNotAllowed")
+        void adminUpdateUser_SpecialtyNotAllowed_Returns400() throws Exception {
+            AdminUpdateUserRequest req = new AdminUpdateUserRequest(null, null, null, null, "Spinning");
+            when(userService.adminUpdateUser(eq(1L), any())).thenThrow(new SpecialtyNotAllowedException());
+
+            mvc.perform(patch(BASE + "/1")
+                            .with(authentication(adminAuth(99L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("SpecialtyNotAllowed"));
         }
     }
 

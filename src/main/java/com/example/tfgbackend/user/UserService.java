@@ -1,6 +1,7 @@
 package com.example.tfgbackend.user;
 
 import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.SpecialtyNotAllowedException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.user.dto.AdminUpdateUserRequest;
@@ -47,6 +48,12 @@ public class UserService {
         if (req.phone() != null) {
             user.setPhone(req.phone());
         }
+        if (req.specialty() != null) {
+            if (user.getRole() != UserRole.INSTRUCTOR) {
+                throw new SpecialtyNotAllowedException();
+            }
+            user.setSpecialty(req.specialty());
+        }
         return toResponse(user);
     }
 
@@ -80,6 +87,17 @@ public class UserService {
         if (req.active() != null) {
             user.setActive(req.active());
         }
+
+        UserRole effectiveRole = req.role() != null ? req.role() : user.getRole();
+        if (req.specialty() != null) {
+            if (effectiveRole != UserRole.INSTRUCTOR) {
+                throw new SpecialtyNotAllowedException();
+            }
+            user.setSpecialty(req.specialty());
+        } else if (effectiveRole != UserRole.INSTRUCTOR) {
+            user.setSpecialty(null);
+        }
+
         return toResponse(user);
     }
 
@@ -101,7 +119,8 @@ public class UserService {
                 user.getPhone(),
                 user.getRole(),
                 user.isActive(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getSpecialty()
         );
     }
 }

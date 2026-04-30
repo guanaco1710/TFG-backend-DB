@@ -3,7 +3,8 @@ package com.example.tfgbackend.classsession;
 import com.example.tfgbackend.AbstractRepositoryTest;
 import com.example.tfgbackend.classtype.ClassType;
 import com.example.tfgbackend.enums.SessionStatus;
-import com.example.tfgbackend.instructor.Instructor;
+import com.example.tfgbackend.enums.UserRole;
+import com.example.tfgbackend.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     private ClassType spinning;
     private ClassType yoga;
-    private Instructor instructor;
+    private User instructor;
 
     @BeforeEach
     void setUp() {
@@ -31,11 +32,12 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
                 .name("Spinning").description("Cycling").level("INTERMEDIATE").build());
         yoga = em.persistAndFlush(ClassType.builder()
                 .name("Yoga").description("Flexibility").level("BASIC").build());
-        instructor = em.persistAndFlush(Instructor.builder()
-                .name("Jorge").specialty("Spinning").build());
+        instructor = em.persistAndFlush(User.builder()
+                .name("Jorge").email("jorge@gym.com").passwordHash("hash")
+                .role(UserRole.INSTRUCTOR).specialty("Spinning").build());
     }
 
-    private ClassSession persistSession(ClassType classType, Instructor instr,
+    private ClassSession persistSession(ClassType classType, User instr,
                                         LocalDateTime start, SessionStatus status) {
         return em.persistAndFlush(ClassSession.builder()
                 .classType(classType).instructor(instr)

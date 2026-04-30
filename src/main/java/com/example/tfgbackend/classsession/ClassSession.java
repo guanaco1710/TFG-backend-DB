@@ -4,7 +4,7 @@ import com.example.tfgbackend.classtype.ClassType;
 import com.example.tfgbackend.common.BaseEntity;
 import com.example.tfgbackend.enums.SessionStatus;
 import com.example.tfgbackend.gym.Gym;
-import com.example.tfgbackend.instructor.Instructor;
+import com.example.tfgbackend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -82,11 +82,10 @@ public class ClassSession extends BaseEntity {
     private Gym gym;
 
     /**
-     * The assigned instructor.  Nullable — a session may be created before an
-     * instructor is assigned, or the instructor record may be deleted (ON DELETE SET NULL
-     * in the migration).
+     * The assigned instructor (a User with role INSTRUCTOR).  Nullable — a session may be
+     * created before an instructor is assigned.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id")
-    private Instructor instructor;
+    private User instructor;
 }

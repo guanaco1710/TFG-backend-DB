@@ -15,10 +15,11 @@ import com.example.tfgbackend.common.exception.InstructorNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.enums.SessionStatus;
+import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.gym.Gym;
 import com.example.tfgbackend.gym.GymRepository;
-import com.example.tfgbackend.instructor.Instructor;
-import com.example.tfgbackend.instructor.InstructorRepository;
+import com.example.tfgbackend.user.User;
+import com.example.tfgbackend.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +38,7 @@ public class ClassSessionService {
     private final BookingRepository bookingRepository;
     private final ClassTypeRepository classTypeRepository;
     private final GymRepository gymRepository;
-    private final InstructorRepository instructorRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public ClassSessionResponse createSession(ClassSessionRequest req) {
@@ -50,10 +51,15 @@ public class ClassSessionService {
                     .orElseThrow(() -> new GymNotFoundException(req.gymId()));
         }
 
-        Instructor instructor = null;
+        // Validate that the referenced user has role INSTRUCTOR before assigning.
+        User instructor = null;
         if (req.instructorId() != null) {
-            instructor = instructorRepository.findById(req.instructorId())
+            User candidate = userRepository.findById(req.instructorId())
                     .orElseThrow(() -> new InstructorNotFoundException(req.instructorId()));
+            if (candidate.getRole() != UserRole.INSTRUCTOR) {
+                throw new InstructorNotFoundException(req.instructorId());
+            }
+            instructor = candidate;
         }
 
         ClassSession session = ClassSession.builder()
@@ -112,10 +118,15 @@ public class ClassSessionService {
                     .orElseThrow(() -> new GymNotFoundException(req.gymId()));
         }
 
-        Instructor instructor = null;
+        // Validate that the referenced user has role INSTRUCTOR before assigning.
+        User instructor = null;
         if (req.instructorId() != null) {
-            instructor = instructorRepository.findById(req.instructorId())
+            User candidate = userRepository.findById(req.instructorId())
                     .orElseThrow(() -> new InstructorNotFoundException(req.instructorId()));
+            if (candidate.getRole() != UserRole.INSTRUCTOR) {
+                throw new InstructorNotFoundException(req.instructorId());
+            }
+            instructor = candidate;
         }
 
         session.setClassType(classType);
