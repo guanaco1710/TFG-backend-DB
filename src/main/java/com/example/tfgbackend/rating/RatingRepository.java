@@ -1,5 +1,7 @@
 package com.example.tfgbackend.rating;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,12 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     /** A user's rating history. */
     List<Rating> findByUserId(Long userId);
+
+    /** Paginated ratings for a session — used on the session detail screen. */
+    Page<Rating> findBySessionId(Long sessionId, Pageable pageable);
+
+    /** Paginated rating history for a user — used on the user's profile screen. */
+    Page<Rating> findByUserId(Long userId, Pageable pageable);
 
     /** Average score for a session — used on the session detail screen. */
     @Query("""

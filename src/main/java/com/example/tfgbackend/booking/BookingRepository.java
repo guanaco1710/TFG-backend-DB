@@ -43,4 +43,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUserIdAndStatus(Long userId, BookingStatus status);
 
     long countByUserIdAndBookedAtBetween(Long userId, Instant start, Instant end);
+
+    /** Used by the rating feature to verify the user actually attended the session. */
+    boolean existsByUserIdAndSessionIdAndStatus(Long userId, Long sessionId, BookingStatus status);
 }

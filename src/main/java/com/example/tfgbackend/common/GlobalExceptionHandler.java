@@ -2,6 +2,9 @@ package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
 import com.example.tfgbackend.common.exception.ClassTypeInUseException;
+import com.example.tfgbackend.common.exception.NotAttendedSessionException;
+import com.example.tfgbackend.common.exception.RatingAlreadyExistsException;
+import com.example.tfgbackend.common.exception.RatingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassTypeNameAlreadyExistsException;
 import com.example.tfgbackend.common.exception.ClassTypeNotFoundException;
 import com.example.tfgbackend.common.exception.GymNameAlreadyExistsException;
@@ -218,6 +221,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SpecialtyNotAllowedException.class)
     ResponseEntity<Map<String, Object>> handleSpecialtyNotAllowed(SpecialtyNotAllowedException ex, HttpServletRequest req) {
         return error(HttpStatus.BAD_REQUEST, "SpecialtyNotAllowed", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(RatingNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleRatingNotFound(RatingNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "RatingNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(RatingAlreadyExistsException.class)
+    ResponseEntity<Map<String, Object>> handleRatingAlreadyExists(RatingAlreadyExistsException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "RatingAlreadyExists", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(NotAttendedSessionException.class)
+    ResponseEntity<Map<String, Object>> handleNotAttendedSession(NotAttendedSessionException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "NotAttendedSession", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
