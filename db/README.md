@@ -4,73 +4,60 @@ PostgreSQL 16 database setup for the TFG Backend.
 
 ## Files
 
-- **Dockerfile** — PostgreSQL 16 Alpine image with initialization scripts
-- **init-scripts/** — SQL scripts executed on container startup
-  - `01-init.sql` — Basic schema initialization and permissions setup
+- **Dockerfile** — PostgreSQL 16 Alpine image; copies `init-scripts/` into the container.
+- **init-scripts/01-init.sql** — Runs once on fresh volume creation: creates the `public` schema and grants privileges. Flyway takes over from here.
+- **reference-schema.sql** — Human-readable reference of the full schema (kept in sync with Flyway migrations for documentation purposes; NOT executed at startup).
+
+## Schema ownership
+
+**Flyway is the single source of truth for the schema.**
+`init-scripts/01-init.sql` only does bootstrap work (grants). All tables, indexes, and columns are created/modified by the Flyway migration files in `src/main/resources/db/migration/`.
 
 ## Usage
 
-### Build and run with Docker Compose
+### Start the database container
 
 From the project root:
 
 ```bash
-# Build the image and start the container
 docker-compose up -d
+```
 
-# View logs
+### Run the application (applies Flyway migrations automatically)
+
+```bash
+SPRING_PROFILES_ACTIVE=postgres ./mvnw spring-boot:run
+```
+
+Flyway connects to `localhost:5432/GymBook_DB` (using `tfg_user` / `tfg_password` by default) and applies any pending migrations on startup.
+
+### View logs / stop / clean up
+
+```bash
 docker-compose logs -f postgres
-
-# Stop the container
 docker-compose down
-
-# Clean up volumes
-docker-compose down -v
+docker-compose down -v   # also removes the data volume
 ```
 
-### Connection details
+### Connection details (defaults)
 
-- **Host:** localhost
-- **Port:** 5432
-- **Database:** tfg_db
-- **Username:** tfg_user
-- **Password:** tfg_password
+| Property | Value |
+|---|---|
+| Host | localhost |
+| Port | 5432 |
+| Database | GymBook_DB |
+| Username | tfg_user |
+| Password | tfg_password |
 
-### Build the image directly
+Override any of these via environment variables (`POSTGRES_DB`, `DB_USERNAME`, `DB_PASSWORD`).
 
-```bash
-docker build -t tfg-postgres:latest .
-```
+## Flyway migrations
 
-### Run the image directly
+Migration scripts live in `src/main/resources/db/migration/` and follow the naming convention `V<number>__<description>.sql`.
 
-```bash
-docker run -d \
-  --name tfg-postgres \
-  -e POSTGRES_DB=tfg_db \
-  -e POSTGRES_USER=tfg_user \
-  -e POSTGRES_PASSWORD=tfg_password \
-  -p 5432:5432 \
-  -v postgres_data:/var/lib/postgresql/data \
-  tfg-postgres:latest
-```
+Current migrations:
 
-## Flyway Migrations
-
-Database schema migrations are managed by Flyway. Place migration scripts in `src/main/resources/db/migration/` with the naming convention `V<number>__<description>.sql`.
-
-Example:
-```
-V1__Initial_schema.sql
-V2__Create_user_table.sql
-V3__Add_booking_table.sql
-```
-
-When the application starts, Flyway will automatically execute pending migrations.
-
-## Development Workflow
-
-1. Start the database: `docker-compose up -d`
-2. Run the Spring Boot application: `./mvnw spring-boot:run`
-3. The application will automatically run Flyway migrations on startup
-4. Make schema changes via Flyway migration files, not direct SQL
+| Version | Description |
+|---|---|
+| V1 | Full initial schema |
+| V2 | Add `read` column + index to `notification` table |

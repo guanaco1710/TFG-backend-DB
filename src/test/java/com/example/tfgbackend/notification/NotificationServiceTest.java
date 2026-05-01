@@ -15,6 +15,7 @@ import com.example.tfgbackend.notification.dto.MarkReadResponse;
 import com.example.tfgbackend.notification.dto.NotificationResponse;
 import com.example.tfgbackend.notification.dto.UnreadCountResponse;
 import com.example.tfgbackend.user.User;
+import com.example.tfgbackend.user.UserRepository;
 import com.example.tfgbackend.waitlist.WaitlistEntry;
 import com.example.tfgbackend.waitlist.WaitlistRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,7 @@ class NotificationServiceTest {
     @Mock BookingRepository bookingRepository;
     @Mock WaitlistRepository waitlistRepository;
     @Mock ClassSessionRepository classSessionRepository;
+    @Mock com.example.tfgbackend.user.UserRepository userRepository;
 
     @InjectMocks NotificationService notificationService;
 
@@ -235,6 +237,7 @@ class NotificationServiceTest {
         @Test
         @DisplayName("creates a CANCELLATION notification and deletes unsent REMINDER")
         void createBookingCancelled_ValidArgs_CreatesCancellationAndDeletesReminder() {
+            when(userRepository.getReferenceById(alice.getId())).thenReturn(alice);
             when(notificationRepository.save(any(Notification.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
 
@@ -257,6 +260,7 @@ class NotificationServiceTest {
         @Test
         @DisplayName("CANCELLATION notification is created with sent=false and read=false")
         void createBookingCancelled_NewCancellation_SentFalseAndReadFalse() {
+            when(userRepository.getReferenceById(alice.getId())).thenReturn(alice);
             when(notificationRepository.save(any(Notification.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
 
@@ -528,6 +532,19 @@ class NotificationServiceTest {
             assertThatThrownBy(() -> notificationService.getById(999L, alice.getId(), false))
                     .isInstanceOf(com.example.tfgbackend.common.exception.NotificationNotFoundException.class)
                     .hasMessageContaining("999");
+        }
+
+        @Test
+        @DisplayName("notification without a session — sessionId in response is null")
+        void getById_NoSession_ResponseSessionIdIsNull() {
+            // Covers the n.getSession() == null branch in toResponse()
+            Notification n = buildNotification(2L, alice, null,
+                    NotificationType.REMINDER, false, false);
+            when(notificationRepository.findById(2L)).thenReturn(Optional.of(n));
+
+            NotificationResponse result = notificationService.getById(2L, alice.getId(), false);
+
+            assertThat(result.sessionId()).isNull();
         }
     }
 

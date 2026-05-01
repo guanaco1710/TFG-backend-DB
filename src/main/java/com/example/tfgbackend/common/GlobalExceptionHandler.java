@@ -2,6 +2,7 @@ package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
 import com.example.tfgbackend.common.exception.ClassTypeInUseException;
+import com.example.tfgbackend.common.exception.NotificationNotFoundException;
 import com.example.tfgbackend.common.exception.NotAttendedSessionException;
 import com.example.tfgbackend.common.exception.RatingAlreadyExistsException;
 import com.example.tfgbackend.common.exception.RatingNotFoundException;
@@ -236,6 +237,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotAttendedSessionException.class)
     ResponseEntity<Map<String, Object>> handleNotAttendedSession(NotAttendedSessionException ex, HttpServletRequest req) {
         return error(HttpStatus.CONFLICT, "NotAttendedSession", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handleNotificationNotFound(NotificationNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "NotificationNotFound", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

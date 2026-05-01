@@ -134,6 +134,7 @@ CREATE TABLE notification (
     scheduled_at TIMESTAMPTZ NOT NULL,
     sent         BOOLEAN     NOT NULL DEFAULT FALSE,
     sent_at      TIMESTAMPTZ,
+    read         BOOLEAN     NOT NULL DEFAULT FALSE,
     user_id      BIGINT      NOT NULL REFERENCES app_user(id)      ON DELETE RESTRICT,
     session_id   BIGINT               REFERENCES class_session(id) ON DELETE SET NULL,
     version      BIGINT      NOT NULL DEFAULT 0,
@@ -143,6 +144,7 @@ CREATE TABLE notification (
 
 CREATE INDEX idx_notification_sent         ON notification(sent);
 CREATE INDEX idx_notification_scheduled_at ON notification(scheduled_at);
+CREATE INDEX idx_notification_user_read    ON notification(user_id, read);
 
 -- -------------------------------------------------------------------------
 -- RATING  (one rating per user per session)
