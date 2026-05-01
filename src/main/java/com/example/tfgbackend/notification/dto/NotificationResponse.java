@@ -10,6 +10,7 @@ public record NotificationResponse(
         Instant scheduledAt,
         boolean sent,
         Instant sentAt,
+        boolean read,
         Long userId,
         Long sessionId
 ) {}

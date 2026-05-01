@@ -63,6 +63,11 @@ public class Notification extends BaseEntity {
     @Column(name = "sent_at")
     private Instant sentAt;
 
+    /** Whether the user has acknowledged (read) this notification in the app. */
+    @Column(name = "read", nullable = false)
+    @Builder.Default
+    private boolean read = false;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

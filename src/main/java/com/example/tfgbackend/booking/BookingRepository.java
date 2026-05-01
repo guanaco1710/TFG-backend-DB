@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -46,4 +48,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /** Used by the rating feature to verify the user actually attended the session. */
     boolean existsByUserIdAndSessionIdAndStatus(Long userId, Long sessionId, BookingStatus status);
+
+    /** All bookings for a session with one of the given statuses — used by notification fan-out. */
+    List<Booking> findBySessionIdAndStatusIn(Long sessionId, Collection<BookingStatus> statuses);
 }
