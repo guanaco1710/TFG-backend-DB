@@ -1,7 +1,11 @@
 package com.example.tfgbackend.common;
 
 import com.example.tfgbackend.common.exception.AlreadyBookedException;
+import com.example.tfgbackend.common.exception.CardExpiredException;
 import com.example.tfgbackend.common.exception.ClassTypeInUseException;
+import com.example.tfgbackend.common.exception.DuplicatePaymentMethodException;
+import com.example.tfgbackend.common.exception.InvalidDefaultToggleException;
+import com.example.tfgbackend.common.exception.PaymentMethodNotFoundException;
 import com.example.tfgbackend.common.exception.NotificationNotFoundException;
 import com.example.tfgbackend.common.exception.NotAttendedSessionException;
 import com.example.tfgbackend.common.exception.RatingAlreadyExistsException;
@@ -242,6 +246,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotificationNotFoundException.class)
     ResponseEntity<Map<String, Object>> handleNotificationNotFound(NotificationNotFoundException ex, HttpServletRequest req) {
         return error(HttpStatus.NOT_FOUND, "NotificationNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(PaymentMethodNotFoundException.class)
+    ResponseEntity<Map<String, Object>> handlePaymentMethodNotFound(PaymentMethodNotFoundException ex, HttpServletRequest req) {
+        return error(HttpStatus.NOT_FOUND, "PaymentMethodNotFound", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(CardExpiredException.class)
+    ResponseEntity<Map<String, Object>> handleCardExpired(CardExpiredException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "CardExpired", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(DuplicatePaymentMethodException.class)
+    ResponseEntity<Map<String, Object>> handleDuplicatePaymentMethod(DuplicatePaymentMethodException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "DuplicatePaymentMethod", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(InvalidDefaultToggleException.class)
+    ResponseEntity<Map<String, Object>> handleInvalidDefaultToggle(InvalidDefaultToggleException ex, HttpServletRequest req) {
+        return error(HttpStatus.UNPROCESSABLE_ENTITY, "InvalidDefaultToggle", ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,6 +2,7 @@ package com.example.tfgbackend.classsession;
 
 import com.example.tfgbackend.booking.BookingRepository;
 import com.example.tfgbackend.classsession.dto.ClassSessionRequest;
+import com.example.tfgbackend.notification.NotificationService;
 import com.example.tfgbackend.classsession.dto.ClassSessionResponse;
 import com.example.tfgbackend.classsession.dto.ClassTypeSummary;
 import com.example.tfgbackend.classsession.dto.GymSummary;
@@ -39,6 +40,7 @@ public class ClassSessionService {
     private final ClassTypeRepository classTypeRepository;
     private final GymRepository gymRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public ClassSessionResponse createSession(ClassSessionRequest req) {
@@ -151,7 +153,8 @@ public class ClassSessionService {
         }
 
         session.setStatus(SessionStatus.CANCELLED);
-        classSessionRepository.save(session);
+        ClassSession saved = classSessionRepository.save(session);
+        notificationService.createSessionCancelled(saved);
     }
 
     private ClassSessionResponse toResponse(ClassSession session) {
