@@ -150,13 +150,13 @@ Roles: `CUSTOMER`, `INSTRUCTOR`, `ADMIN`
 
 ## Gyms
 
-| Method | Path | Description | Auth                  |
-|--------|------|-------------|-----------------------|
-| `GET` | `/gyms` | List gyms | Any                   |
-| `GET` | `/gyms/{id}` | Get gym by ID | Any                   |
-| `POST` | `/gyms` | Create a gym | `USER`                |
-| `PUT` | `/gyms/{id}` | Update a gym | `ADMIN`, `GYM_CREATOR` |
-| `DELETE` | `/gyms/{id}` | Delete a gym | `ADMIN`, `GYM_CREATOR` |
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/gyms` | List gyms | Any |
+| `GET` | `/gyms/{id}` | Get gym by ID | Any |
+| `POST` | `/gyms` | Create a gym | `ADMIN` |
+| `PUT` | `/gyms/{id}` | Update a gym | `ADMIN` |
+| `DELETE` | `/gyms/{id}` | Delete a gym | `ADMIN` |
 
 ### POST /gyms — Request
 ```json
@@ -176,13 +176,13 @@ Roles: `CUSTOMER`, `INSTRUCTOR`, `ADMIN`
 
 Templates for classes (e.g. "Spinning 45min").
 
-| Method | Path | Description | Auth                   |
-|--------|------|-------------|------------------------|
-| `GET` | `/class-types` | List class types | Any                    |
-| `GET` | `/class-types/{id}` | Get class type by ID | Any                    |
-| `POST` | `/class-types` | Create a class type | `ADMIN`, `GYM_CREATOR` |
-| `PUT` | `/class-types/{id}` | Update a class type | `ADMIN`, `GYM_CREATOR` |
-| `DELETE` | `/class-types/{id}` | Delete a class type | `ADMIN`, `GYM_CREATOR`  |
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/class-types` | List class types | Any |
+| `GET` | `/class-types/{id}` | Get class type by ID | Any |
+| `POST` | `/class-types` | Create a class type | `ADMIN` |
+| `PUT` | `/class-types/{id}` | Update a class type | `ADMIN` |
+| `DELETE` | `/class-types/{id}` | Delete a class type | `ADMIN` |
 
 ### POST /class-types — Request
 ```json
@@ -202,15 +202,15 @@ Templates for classes (e.g. "Spinning 45min").
 
 Concrete scheduled occurrences of a class type.
 
-| Method | Path | Description | Auth                                 |
-|--------|------|-------------|--------------------------------------|
-| `GET` | `/class-sessions` | List sessions (schedule) | Any                                  |
-| `GET` | `/class-sessions/{id}` | Get session detail | Any                                  |
-| `POST` | `/class-sessions` | Schedule a session | `ADMIN`, `INSTRUCTOR`, `GYM_CREATOR` |
-| `PUT` | `/class-sessions/{id}` | Update a session | `ADMIN`, `INSTRUCTOR`, `GYM_CREATOR` |
-| `DELETE` | `/class-sessions/{id}` | Cancel / remove session | `ADMIN`                              |
-| `GET` | `/class-sessions/{id}/bookings` | List all bookings for session | `INSTRUCTOR`, `ADMIN`, `GYM_CREATOR` |
-| `POST` | `/class-sessions/{id}/attendance` | Mark attendance for session | `INSTRUCTOR`, `ADMIN`, `GYM_CREATOR` |
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/class-sessions` | List sessions (schedule) | Any |
+| `GET` | `/class-sessions/{id}` | Get session detail | Any |
+| `POST` | `/class-sessions` | Schedule a session | `ADMIN` |
+| `PUT` | `/class-sessions/{id}` | Update a session | `ADMIN` |
+| `DELETE` | `/class-sessions/{id}` | Cancel a session | `ADMIN` |
+| `GET` | `/class-sessions/{id}/bookings` | List all bookings for session | `INSTRUCTOR`, `ADMIN` |
+| `POST` | `/class-sessions/{id}/attendance` | Mark attendance for session | `INSTRUCTOR`, `ADMIN` |
 
 ### GET /class-sessions — Query params
 | Param | Type | Description |
@@ -233,19 +233,20 @@ Concrete scheduled occurrences of a class type.
       "id": 1,
       "classType": { "id": 1, "name": "Spinning 45min" },
       "gym": { "id": 1, "name": "Main Gym" },
-      "instructor": { "id": 2, "firstName": "Jane", "lastName": "Doe" },
+      "instructor": { "id": 2, "name": "Jane Doe", "specialty": "Cycling" },
       "startTime": "2024-06-01T09:00:00",
-      "endTime": "2024-06-01T09:45:00",
-      "capacity": 20,
+      "durationMinutes": 45,
+      "maxCapacity": 20,
+      "room": "Studio A",
+      "status": "SCHEDULED",
       "confirmedCount": 15,
-      "waitlistedCount": 3,
-      "availableSpots": 5,
-      "status": "SCHEDULED"
+      "availableSpots": 5
     }
   ],
   "page": 0,
   "size": 20,
-  "total": 50
+  "totalElements": 50,
+  "totalPages": 3
 }
 ```
 
@@ -256,7 +257,8 @@ Concrete scheduled occurrences of a class type.
   "gymId": 1,
   "instructorId": 2,
   "startTime": "2024-06-01T09:00:00",
-  "capacity": 20,
+  "durationMinutes": 45,
+  "maxCapacity": 20,
   "room": "Studio A"
 }
 // Response 201 + Location: /api/v1/class-sessions/{id}
@@ -366,10 +368,11 @@ Concrete scheduled occurrences of a class type.
 |--------|------|-------------|------|
 | `GET` | `/subscriptions/me` | Get own current subscription | `CUSTOMER` |
 | `POST` | `/subscriptions` | Subscribe to a membership plan | `CUSTOMER` |
-| `PATCH` | `/subscriptions/me/cancel` | Cancel own subscription (end of period) | `CUSTOMER` |
+| `POST` | `/subscriptions/me/cancel` | Cancel own subscription (end of period) | `CUSTOMER` |
 | `GET` | `/subscriptions` | List all subscriptions (paginated) | `ADMIN` |
 | `GET` | `/subscriptions/{id}` | Get subscription by ID | `ADMIN` |
-| `PATCH` | `/subscriptions/{id}/cancel` | Admin cancel a subscription | `ADMIN` |
+| `POST` | `/subscriptions/{id}/cancel` | Admin cancel a subscription | `ADMIN` |
+| `POST` | `/subscriptions/{id}/renew` | Admin renew/reactivate a subscription | `ADMIN` |
 
 ### POST /subscriptions — Request
 ```json
@@ -452,6 +455,167 @@ Concrete scheduled occurrences of a class type.
 
 ---
 
+## Ratings
+
+Customers rate a session after attending it. One rating per user per session.
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `POST` | `/ratings` | Submit a rating for an attended session | `CUSTOMER` |
+| `PUT` | `/ratings/{id}` | Update own rating | `CUSTOMER` |
+| `DELETE` | `/ratings/{id}` | Delete a rating | Owner or `ADMIN` |
+| `GET` | `/ratings/session/{sessionId}` | List all ratings for a session (paginated) | Any authenticated |
+| `GET` | `/ratings/me` | List own ratings (paginated) | Any authenticated |
+
+### POST /ratings — Request
+```json
+{
+  "sessionId": 1,
+  "score": 5,
+  "comment": "Great class!"
+}
+// Response 201 + Location: /api/v1/ratings/{id}
+```
+
+### POST /ratings — Response 201
+```json
+{
+  "id": 10,
+  "score": 5,
+  "comment": "Great class!",
+  "ratedAt": "2026-05-01T09:00:00Z",
+  "userId": 1,
+  "sessionId": 1
+}
+```
+
+### PUT /ratings/{id} — Request
+```json
+{ "score": 4, "comment": "Updated comment" }
+```
+
+### GET /ratings/session/{sessionId} — Query params
+| Param | Type | Description |
+|-------|------|-------------|
+| `page` | int | Page number (0-based) |
+| `size` | int | Page size |
+| `sort` | string | e.g. `ratedAt,desc` |
+
+---
+
+## Notifications
+
+Notifications are created automatically by the backend on booking confirmed/cancelled and session cancelled. The Flutter app polls to retrieve and display them.
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/notifications/me` | List own notifications (paginated, filterable) | Any authenticated |
+| `GET` | `/notifications/me/unread-count` | Count unread notifications | Any authenticated |
+| `GET` | `/notifications/{id}` | Get a single notification | Owner or `ADMIN` |
+| `POST` | `/notifications/{id}/read` | Mark notification as read (idempotent) | Owner or `ADMIN` |
+| `POST` | `/notifications/me/read-all` | Mark all own notifications as read | Any authenticated |
+| `DELETE` | `/notifications/{id}` | Delete a notification | Owner or `ADMIN` |
+| `GET` | `/notifications/users/{userId}` | List all notifications for a user | `ADMIN` |
+| `GET` | `/class-sessions/{sessionId}/notifications` | List all notifications for a session | `INSTRUCTOR`, `ADMIN` |
+
+### GET /notifications/me — Query params
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | `CONFIRMATION\|REMINDER\|CANCELLATION` | — | Filter by type |
+| `unreadOnly` | boolean | `false` | Only unread notifications |
+| `sentOnly` | boolean | `true` | Only dispatched notifications |
+| `page` | int | 0 | |
+| `size` | int | 20 | |
+
+### GET /notifications/me — Response 200
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "type": "CONFIRMATION",
+      "scheduledAt": "2026-05-01T09:00:00Z",
+      "sent": true,
+      "sentAt": "2026-05-01T09:00:05Z",
+      "read": false,
+      "userId": 1,
+      "sessionId": 10
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 5,
+  "totalPages": 1
+}
+```
+
+### POST /notifications/{id}/read — Response 200
+```json
+{ "updated": 1 }
+// Returns 0 if already read (idempotent)
+```
+
+### POST /notifications/me/read-all — Response 200
+```json
+{ "updated": 3 }
+```
+
+---
+
+## Payment Methods
+
+Stores billing card metadata only — no real payment processing.
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| `GET` | `/users/{userId}/payment-methods` | List payment methods for a user | Owner or `ADMIN` |
+| `POST` | `/users/{userId}/payment-methods` | Add a payment method | Owner or `ADMIN` |
+| `GET` | `/users/{userId}/payment-methods/{pmId}` | Get a single payment method | Owner or `ADMIN` |
+| `PATCH` | `/users/{userId}/payment-methods/{pmId}` | Set as default card | Owner or `ADMIN` |
+| `DELETE` | `/users/{userId}/payment-methods/{pmId}` | Delete a payment method | Owner or `ADMIN` |
+
+### POST /users/{userId}/payment-methods — Request
+```json
+{
+  "cardType": "VISA",
+  "last4": "4242",
+  "expiryMonth": 12,
+  "expiryYear": 2028,
+  "cardholderName": "Alice Smith"
+}
+// Response 201 + Location: /api/v1/users/{userId}/payment-methods/{id}
+```
+
+### POST /users/{userId}/payment-methods — Response 201
+```json
+{
+  "id": 1,
+  "cardType": "VISA",
+  "last4": "4242",
+  "expiryMonth": 12,
+  "expiryYear": 2028,
+  "cardholderName": "Alice Smith",
+  "isDefault": true,
+  "createdAt": "2026-05-01T10:00:00Z"
+}
+```
+
+Card types: `VISA`, `MASTERCARD`, `AMEX`, `DISCOVER`
+
+### PATCH /users/{userId}/payment-methods/{pmId} — Request
+```json
+{ "isDefault": true }
+// isDefault: false → 422 Unprocessable Entity
+```
+
+### Business rules
+- First card added is automatically set as default
+- Deleting the default card auto-promotes the most recently added sibling
+- Expired cards (past expiry month/year) → 409 Conflict
+- Duplicate `cardType + last4` for the same user → 409 Conflict
+
+---
+
 ## Error Response Shape
 
 All errors follow a consistent envelope:
@@ -476,8 +640,8 @@ All errors follow a consistent envelope:
 | `400 Bad Request` | Validation failure |
 | `401 Unauthorized` | Missing or invalid JWT |
 | `403 Forbidden` | Authenticated but insufficient role |
-| `404 Not Found` | Resource does not exist |
-| `409 Conflict` | Business rule violation (e.g. already booked, session full with no waitlist) |
+| `404 Not Found` | Resource does not exist (also used for IDOR) |
+| `409 Conflict` | Business rule violation (e.g. already booked, duplicate card) |
 | `422 Unprocessable Entity` | Logically invalid request (e.g. booking a cancelled session) |
 
 ---
