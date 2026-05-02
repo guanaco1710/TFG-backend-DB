@@ -4,18 +4,19 @@ import com.example.tfgbackend.auth.dto.AuthResponse;
 import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
 import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
+import com.example.tfgbackend.auth.dto.LogoutRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
 import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
-import com.example.tfgbackend.auth.dto.TokenPair;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URI;
 
 /**
  * Auth endpoints — all public (no Bearer token required).
@@ -33,12 +34,13 @@ public class AuthController {
     /**
      * Registers a new gym member account.
      *
-     * @return 201 Created with access + refresh tokens and user summary
+     * @return 201 Created with tokens, user summary, and a Location header pointing to the new profile
      */
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        URI location = URI.create("/api/v1/users/" + response.user().id());
+        return ResponseEntity.created(location).body(response);
     }
 
     /**
@@ -54,11 +56,22 @@ public class AuthController {
     /**
      * Exchanges a valid refresh token for a new access + refresh pair (rotation).
      *
-     * @return 200 OK with the new token pair
+     * @return 200 OK with the new token pair and user identity
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenPair> refresh(@Valid @RequestBody RefreshRequest request) {
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    /**
+     * Revokes the supplied refresh token, logging the user out on this device.
+     *
+     * @return 204 No Content
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/forgot-password")

@@ -80,6 +80,10 @@ public class JwtService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    public long getAccessTokenExpirationSeconds() {
+        return accessTokenExpirationSeconds;
+    }
+
     /**
      * Returns the number of seconds until a new refresh token expires.
      */
