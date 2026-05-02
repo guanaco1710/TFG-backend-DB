@@ -206,6 +206,29 @@ class PaymentMethodServiceTest {
         }
 
         @Test
+        @DisplayName("card expiring current year, future month — valid, saves successfully")
+        void addPaymentMethod_ExpiryCurrentYearFutureMonth_SavesSuccessfully() {
+            // Covers the branch: expiryYear == currentYear && expiryMonth >= currentMonth
+            // December is always a valid month in the current year regardless of when the test runs
+            AddPaymentMethodRequest req = new AddPaymentMethodRequest(
+                    CardType.VISA, "4242", 12, CURRENT_YEAR, "Alice Smith");
+            when(userRepository.findById(1L)).thenReturn(Optional.of(alice));
+            when(paymentMethodRepository.existsByUserIdAndCardTypeAndLast4(
+                    1L, CardType.VISA, "4242")).thenReturn(false);
+            when(paymentMethodRepository.findByUserId(1L)).thenReturn(List.of());
+            when(paymentMethodRepository.save(any(PaymentMethod.class))).thenAnswer(inv -> {
+                PaymentMethod pm = inv.getArgument(0);
+                setId(pm, 10L);
+                return pm;
+            });
+
+            PaymentMethodResponse response = paymentMethodService.addPaymentMethod(1L, req);
+
+            assertThat(response.expiryMonth()).isEqualTo(12);
+            assertThat(response.expiryYear()).isEqualTo(CURRENT_YEAR);
+        }
+
+        @Test
         @DisplayName("user not found — throws PaymentMethodNotFoundException")
         void addPaymentMethod_UserNotFound_ThrowsPaymentMethodNotFoundException() {
             // Given
