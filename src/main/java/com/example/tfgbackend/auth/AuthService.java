@@ -4,6 +4,7 @@ import com.example.tfgbackend.auth.dto.AuthResponse;
 import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
 import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
+import com.example.tfgbackend.auth.dto.LogoutRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
 import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
@@ -97,12 +98,12 @@ public class AuthService {
      * Rotates a refresh token: validates the old one, issues a new pair, and revokes the old token.
      *
      * @param request the current refresh token value (raw, not hashed)
-     * @return a new token pair
+     * @return auth response with a new token pair and user identity
      * @throws TokenRevokedException if the token is unknown or already revoked
      * @throws TokenExpiredException if the token has passed its expiry
      */
     @Transactional
-    public TokenPair refresh(RefreshRequest request) {
+    public AuthResponse refresh(RefreshRequest request) {
         String hash = JwtService.sha256Hex(request.refreshToken());
 
         RefreshToken stored = refreshTokenRepository.findByTokenHash(hash)
@@ -123,7 +124,23 @@ public class AuthService {
         User user = userRepository.findById(stored.getUserId())
                 .orElseThrow(TokenRevokedException::new);
 
-        return issueTokenPair(user);
+        return new AuthResponse(issueTokenPair(user), toSummary(user));
+    }
+
+    /**
+     * Revokes the supplied refresh token, effectively logging the user out on this device.
+     *
+     * <p>Silently succeeds if the token is unknown or already revoked — idempotent by design.
+     *
+     * @param request the raw refresh token to invalidate
+     */
+    @Transactional
+    public void logout(LogoutRequest request) {
+        String hash = JwtService.sha256Hex(request.refreshToken());
+        refreshTokenRepository.findByTokenHash(hash).ifPresent(token -> {
+            token.setRevoked(true);
+            refreshTokenRepository.save(token);
+        });
     }
 
     /**
@@ -191,7 +208,7 @@ public class AuthService {
                 .build();
         refreshTokenRepository.save(refreshToken);
 
-        return new TokenPair(accessToken, rawRefresh);
+        return new TokenPair(accessToken, rawRefresh, jwtService.getAccessTokenExpirationSeconds());
     }
 
     private UserSummary toSummary(User user) {

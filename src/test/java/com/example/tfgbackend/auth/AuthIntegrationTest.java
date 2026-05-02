@@ -4,10 +4,10 @@ import com.example.tfgbackend.auth.dto.AuthResponse;
 import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
 import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
+import com.example.tfgbackend.auth.dto.LogoutRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
 import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
-import com.example.tfgbackend.auth.dto.TokenPair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -99,13 +99,14 @@ class AuthIntegrationTest {
         String refreshToken = loginBody.tokens().refreshToken();
 
         RefreshRequest refreshReq = new RefreshRequest(refreshToken);
-        ResponseEntity<TokenPair> refreshResp = rest.postForEntity(url(BASE + "/refresh"), refreshReq, TokenPair.class);
+        ResponseEntity<AuthResponse> refreshResp = rest.postForEntity(url(BASE + "/refresh"), refreshReq, AuthResponse.class);
 
         assertThat(refreshResp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        TokenPair refreshBody = refreshResp.getBody();
+        AuthResponse refreshBody = refreshResp.getBody();
         assertThat(refreshBody).isNotNull();
-        assertThat(refreshBody.accessToken()).isNotBlank();
-        String newAccessToken = refreshBody.accessToken();
+        assertThat(refreshBody.tokens().accessToken()).isNotBlank();
+        assertThat(refreshBody.user().email()).isEqualTo("integ@test.com");
+        String newAccessToken = refreshBody.tokens().accessToken();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(newAccessToken);
@@ -145,7 +146,7 @@ class AuthIntegrationTest {
         String firstRefresh = regResp.getBody().tokens().refreshToken();
 
         RefreshRequest first = new RefreshRequest(firstRefresh);
-        rest.postForEntity(url(BASE + "/refresh"), first, TokenPair.class);
+        rest.postForEntity(url(BASE + "/refresh"), first, AuthResponse.class);
 
         ResponseEntity<String> second = rest.postForEntity(url(BASE + "/refresh"), first, String.class);
         assertThat(second.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -207,6 +208,24 @@ class AuthIntegrationTest {
                 String.class);
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("logout: valid refresh token is revoked and returns 204")
+    void logout_ValidToken_Returns204AndRevokesToken() {
+        RegisterRequest reg = new RegisterRequest("Logout User", "logout@test.com", "supersecret123!", null);
+        AuthResponse regBody = rest.postForEntity(url(BASE + "/register"), reg, AuthResponse.class).getBody();
+        assertThat(regBody).isNotNull();
+        String refreshToken = regBody.tokens().refreshToken();
+
+        ResponseEntity<Void> logoutResp = rest.postForEntity(
+                url(BASE + "/logout"), new LogoutRequest(refreshToken), Void.class);
+        assertThat(logoutResp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        // Token is now revoked — refresh should return 401
+        ResponseEntity<String> refreshResp = rest.postForEntity(
+                url(BASE + "/refresh"), new RefreshRequest(refreshToken), String.class);
+        assertThat(refreshResp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

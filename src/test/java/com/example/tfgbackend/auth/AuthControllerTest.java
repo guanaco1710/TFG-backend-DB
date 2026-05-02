@@ -4,6 +4,7 @@ import com.example.tfgbackend.auth.dto.AuthResponse;
 import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
 import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
+import com.example.tfgbackend.auth.dto.LogoutRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
 import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
@@ -52,7 +53,7 @@ class AuthControllerTest {
     private static final String BASE = "/api/v1/auth";
 
     private AuthResponse sampleAuthResponse() {
-        TokenPair tokens = new TokenPair("access.token.here", "refresh-token-raw");
+        TokenPair tokens = new TokenPair("access.token.here", "refresh-token-raw", 900L);
         UserSummary user = new UserSummary(1L, "Alice", "alice@test.com", UserRole.CUSTOMER);
         return new AuthResponse(tokens, user);
     }
@@ -154,10 +155,9 @@ class AuthControllerTest {
     // -----------------------------------------------------------------------
 
     @Test
-    @DisplayName("refresh: valid token returns 200 with new tokens")
+    @DisplayName("refresh: valid token returns 200 with new tokens and user identity")
     void refresh_ValidToken_Returns200WithNewTokens() throws Exception {
-        TokenPair newPair = new TokenPair("new.access.token", "new-refresh-token");
-        when(authService.refresh(any())).thenReturn(newPair);
+        when(authService.refresh(any())).thenReturn(sampleAuthResponse());
 
         RefreshRequest body = new RefreshRequest("old-refresh-token");
 
@@ -165,8 +165,9 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("new.access.token"))
-                .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));
+                .andExpect(jsonPath("$.tokens.accessToken").value("access.token.here"))
+                .andExpect(jsonPath("$.tokens.refreshToken").value("refresh-token-raw"))
+                .andExpect(jsonPath("$.user.email").value("alice@test.com"));
     }
 
     @Test
@@ -195,6 +196,30 @@ class AuthControllerTest {
                         .content(mapper.writeValueAsString(body)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401));
+    }
+
+    // -----------------------------------------------------------------------
+    // logout
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("logout: valid refresh token returns 204")
+    void logout_ValidToken_Returns204() throws Exception {
+        LogoutRequest body = new LogoutRequest("some-refresh-token");
+
+        mvc.perform(post(BASE + "/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(body)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("logout: missing refreshToken field returns 400")
+    void logout_MissingToken_Returns400() throws Exception {
+        mvc.perform(post(BASE + "/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 
     // -----------------------------------------------------------------------

@@ -10,70 +10,132 @@ Roles: `CUSTOMER`, `INSTRUCTOR`, `ADMIN`
 
 ## Auth
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| `POST` | `/auth/register` | Register a new customer account | Public |
-| `POST` | `/auth/login` | Obtain access + refresh tokens | Public |
-| `POST` | `/auth/refresh` | Rotate refresh token, issue new access token | Public |
-| `POST` | `/auth/logout` | Revoke the current refresh token | Any |
-| `POST` | `/auth/password-reset/request` | Send a password-reset email | Public |
-| `POST` | `/auth/password-reset/confirm` | Apply new password using the reset token | Public |
+All `/auth/**` endpoints are public — no `Authorization` header required.
 
-### POST /auth/register
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/auth/register` | Register a new account |
+| `POST` | `/auth/login` | Obtain access + refresh tokens |
+| `POST` | `/auth/refresh` | Rotate refresh token, get new token pair |
+| `POST` | `/auth/logout` | Revoke a refresh token (logout this device) |
+| `POST` | `/auth/forgot-password` | Request a password-reset token |
+| `POST` | `/auth/reset-password` | Apply a new password using the reset token |
+
+### Auth response shape
+
+Login, register, and refresh all return the same envelope:
+
 ```json
-// Request
 {
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string"
-}
-
-// Response 201
-{
-  "id": 1,
-  "email": "string",
-  "firstName": "string",
-  "lastName": "string",
-  "role": "CUSTOMER"
+  "tokens": {
+    "accessToken": "string",
+    "refreshToken": "string",
+    "expiresInSeconds": 900
+  },
+  "user": {
+    "id": 1,
+    "name": "Alice Smith",
+    "email": "alice@example.com",
+    "role": "CUSTOMER"
+  }
 }
 ```
 
+`role` is one of `CUSTOMER`, `INSTRUCTOR`, `ADMIN`.  
+`expiresInSeconds` is the lifetime of the **access token** (default 900 s / 15 min).
+
+---
+
+### POST /auth/register
+
+```json
+// Request
+{
+  "name": "string",        // required
+  "email": "string",       // required, must be a valid email
+  "password": "string",    // required, min 8 characters
+  "role": "CUSTOMER"       // optional, defaults to CUSTOMER
+}
+
+// Response 201 + Location: /api/v1/users/{id}
+// Body: auth response envelope (see above)
+```
+
+The user is immediately logged in — no second login call needed.
+
+---
+
 ### POST /auth/login
+
 ```json
 // Request
 { "email": "string", "password": "string" }
 
 // Response 200
-{
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 900
-}
+// Body: auth response envelope (see above)
 ```
 
+Returns 401 for both unknown email and wrong password (no user enumeration).
+
+---
+
 ### POST /auth/refresh
+
 ```json
 // Request
 { "refreshToken": "string" }
 
 // Response 200
-{ "accessToken": "string", "refreshToken": "string", "expiresIn": 900 }
+// Body: auth response envelope (see above) — includes refreshed user identity
 ```
 
-### POST /auth/password-reset/request
+The old refresh token is immediately revoked (rotation). Re-using a consumed token returns 401.
+
+---
+
+### POST /auth/logout
+
+```json
+// Request
+{ "refreshToken": "string" }
+
+// Response 204 No Content
+```
+
+Revokes the supplied refresh token. Idempotent — silently succeeds if the token is already revoked or unknown. The access token remains valid until it expires naturally; clients should discard it locally.
+
+---
+
+### POST /auth/forgot-password
+
 ```json
 // Request
 { "email": "string" }
-// Response 204
+
+// Response 200
+{
+  "message": "If that email is registered, a reset link has been sent.",
+  "resetToken": "string | null"
+}
 ```
 
-### POST /auth/password-reset/confirm
+Always returns 200 regardless of whether the email exists (no enumeration). `resetToken` is non-null only for known emails — in production this would be delivered by email; the raw token is included in the response for development purposes only.
+
+---
+
+### POST /auth/reset-password
+
 ```json
 // Request
-{ "token": "string", "newPassword": "string" }
-// Response 204
+{
+  "token": "string",        // raw reset token from forgot-password response
+  "newPassword": "string"   // min 8 characters
+}
+
+// Response 200
 ```
+
+Returns 401 if the token is unknown, already used, or expired (15-minute window).
 
 ---
 

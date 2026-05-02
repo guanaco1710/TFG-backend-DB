@@ -4,10 +4,10 @@ import com.example.tfgbackend.auth.dto.AuthResponse;
 import com.example.tfgbackend.auth.dto.ForgotPasswordRequest;
 import com.example.tfgbackend.auth.dto.ForgotPasswordResponse;
 import com.example.tfgbackend.auth.dto.LoginRequest;
+import com.example.tfgbackend.auth.dto.LogoutRequest;
 import com.example.tfgbackend.auth.dto.RefreshRequest;
 import com.example.tfgbackend.auth.dto.RegisterRequest;
 import com.example.tfgbackend.auth.dto.ResetPasswordRequest;
-import com.example.tfgbackend.auth.dto.TokenPair;
 import com.example.tfgbackend.common.exception.EmailAlreadyExistsException;
 import com.example.tfgbackend.common.exception.InvalidCredentialsException;
 import com.example.tfgbackend.common.exception.InvalidResetTokenException;
@@ -66,6 +66,7 @@ class AuthServiceTest {
         });
         when(jwtService.generateAccessToken(any())).thenReturn("access.jwt");
         when(jwtService.generateRefreshToken()).thenReturn("raw-refresh");
+        when(jwtService.getAccessTokenExpirationSeconds()).thenReturn(900L);
         when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponse response = authService.register(req);
@@ -92,6 +93,7 @@ class AuthServiceTest {
         when(userRepository.save(any())).thenAnswer(inv -> reflectId(inv.getArgument(0), 2L));
         when(jwtService.generateAccessToken(any())).thenReturn("tok");
         when(jwtService.generateRefreshToken()).thenReturn("ref");
+        when(jwtService.getAccessTokenExpirationSeconds()).thenReturn(900L);
         when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponse resp = authService.register(req);
@@ -108,6 +110,7 @@ class AuthServiceTest {
         when(userRepository.save(any())).thenAnswer(inv -> reflectId(inv.getArgument(0), 3L));
         when(jwtService.generateAccessToken(any())).thenReturn("tok");
         when(jwtService.generateRefreshToken()).thenReturn("ref");
+        when(jwtService.getAccessTokenExpirationSeconds()).thenReturn(900L);
         when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponse resp = authService.register(req);
@@ -141,6 +144,7 @@ class AuthServiceTest {
         when(passwordEncoder.matches("supersecret123", "$2a$12$hash")).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("access.jwt");
         when(jwtService.generateRefreshToken()).thenReturn("raw-refresh");
+        when(jwtService.getAccessTokenExpirationSeconds()).thenReturn(900L);
         when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponse resp = authService.login(req);
@@ -193,12 +197,14 @@ class AuthServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(jwtService.generateAccessToken(user)).thenReturn("new.access.jwt");
         when(jwtService.generateRefreshToken()).thenReturn("new-raw-refresh");
+        when(jwtService.getAccessTokenExpirationSeconds()).thenReturn(900L);
         when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        TokenPair pair = authService.refresh(new RefreshRequest(rawToken));
+        AuthResponse resp = authService.refresh(new RefreshRequest(rawToken));
 
-        assertThat(pair.accessToken()).isEqualTo("new.access.jwt");
-        assertThat(pair.refreshToken()).isEqualTo("new-raw-refresh");
+        assertThat(resp.tokens().accessToken()).isEqualTo("new.access.jwt");
+        assertThat(resp.tokens().refreshToken()).isEqualTo("new-raw-refresh");
+        assertThat(resp.user().email()).isEqualTo("alice@test.com");
 
         // Old token must be revoked
         assertThat(stored.isRevoked()).isTrue();
@@ -253,6 +259,45 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.refresh(new RefreshRequest(rawToken)))
                 .isInstanceOf(TokenRevokedException.class);
+    }
+
+    // -----------------------------------------------------------------------
+    // logout
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("logout: valid token is revoked")
+    void logout_ValidToken_RevokesToken() {
+        String rawToken = "valid-refresh-token";
+        String tokenHash = JwtService.sha256Hex(rawToken);
+
+        RefreshToken stored = RefreshToken.builder()
+                .tokenHash(tokenHash)
+                .userId(1L)
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenRepository.findByTokenHash(tokenHash)).thenReturn(Optional.of(stored));
+        when(refreshTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.logout(new LogoutRequest(rawToken));
+
+        assertThat(stored.isRevoked()).isTrue();
+        verify(refreshTokenRepository).save(stored);
+    }
+
+    @Test
+    @DisplayName("logout: unknown token is silently ignored")
+    void logout_UnknownToken_DoesNothing() {
+        String rawToken = "unknown-token";
+        String tokenHash = JwtService.sha256Hex(rawToken);
+
+        when(refreshTokenRepository.findByTokenHash(tokenHash)).thenReturn(Optional.empty());
+
+        authService.logout(new LogoutRequest(rawToken));
+
+        verify(refreshTokenRepository, never()).save(any());
     }
 
     // -----------------------------------------------------------------------
