@@ -64,7 +64,7 @@ public class Notification extends BaseEntity {
     private Instant sentAt;
 
     /** Whether the user has acknowledged (read) this notification in the app. */
-    @Column(name = "read", nullable = false)
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
     private boolean read = false;
 
