@@ -54,6 +54,7 @@ class ClassSessionServiceTest {
     @Mock ClassTypeRepository classTypeRepository;
     @Mock GymRepository gymRepository;
     @Mock UserRepository userRepository;
+    @Mock com.example.tfgbackend.notification.NotificationService notificationService;
 
     @InjectMocks ClassSessionService classSessionService;
 

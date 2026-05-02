@@ -17,6 +17,7 @@ import com.example.tfgbackend.user.UserRepository;
 import com.example.tfgbackend.waitlist.WaitlistRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -172,6 +173,7 @@ public class NotificationService {
                 .toList();
     }
 
+    @Scheduled(fixedDelayString = "${notifications.dispatch.delay-ms:60000}")
     @Transactional
     public void dispatchPending() {
         List<Notification> due = notificationRepository.findPendingDue(Instant.now());

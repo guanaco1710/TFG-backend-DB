@@ -23,6 +23,7 @@ import com.example.tfgbackend.subscription.Subscription;
 import com.example.tfgbackend.subscription.SubscriptionRepository;
 import com.example.tfgbackend.user.User;
 import com.example.tfgbackend.user.UserRepository;
+import com.example.tfgbackend.notification.NotificationService;
 import com.example.tfgbackend.waitlist.WaitlistEntry;
 import com.example.tfgbackend.waitlist.WaitlistRepository;
 import com.example.tfgbackend.waitlist.dto.WaitlistEntryResponse;
@@ -46,6 +47,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final WaitlistRepository waitlistRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final NotificationService notificationService;
 
     // Optimistic locking on ClassSession.version prevents two concurrent bookings from
     // both seeing capacity available. The service also does a transactional count check
@@ -90,6 +92,7 @@ public class BookingService {
                 .build();
 
         Booking saved = bookingRepository.save(booking);
+        notificationService.createBookingConfirmed(saved);
         return toBookingResponse(saved);
     }
 
@@ -108,6 +111,7 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+        notificationService.createBookingCancelled(booking.getUser().getId(), booking.getSession());
 
         // Refund the class credit if the session hasn't started yet
         if (booking.getSession().getStartTime().isAfter(java.time.LocalDateTime.now())) {

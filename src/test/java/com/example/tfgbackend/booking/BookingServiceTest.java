@@ -74,6 +74,7 @@ class BookingServiceTest {
     @Mock UserRepository userRepository;
     @Mock WaitlistRepository waitlistRepository;
     @Mock SubscriptionRepository subscriptionRepository;
+    @Mock com.example.tfgbackend.notification.NotificationService notificationService;
 
     @InjectMocks BookingService bookingService;
 
