@@ -1,5 +1,7 @@
 package com.example.tfgbackend.subscription;
 
+import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
 import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
@@ -8,8 +10,11 @@ import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.enums.SubscriptionStatus;
+import com.example.tfgbackend.gym.Gym;
+import com.example.tfgbackend.gym.GymRepository;
 import com.example.tfgbackend.membershipplan.MembershipPlan;
 import com.example.tfgbackend.membershipplan.MembershipPlanRepository;
+import com.example.tfgbackend.subscription.dto.GymSummary;
 import com.example.tfgbackend.subscription.dto.MembershipPlanSummary;
 import com.example.tfgbackend.subscription.dto.SubscriptionResponse;
 import com.example.tfgbackend.user.User;
@@ -31,13 +36,16 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final MembershipPlanRepository membershipPlanRepository;
+    private final GymRepository gymRepository;
 
     @Transactional
-    public SubscriptionResponse subscribe(Long userId, Long planId) {
+    public SubscriptionResponse subscribe(Long userId, Long planId, Long gymId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         MembershipPlan plan = membershipPlanRepository.findById(planId)
                 .orElseThrow(() -> new MembershipPlanNotFoundException(planId));
+        Gym gym = gymRepository.findById(gymId)
+                .orElseThrow(() -> new GymNotFoundException(gymId));
 
         if (!plan.isActive()) {
             throw new MembershipPlanInactiveException(planId);
@@ -50,6 +58,7 @@ public class SubscriptionService {
         Subscription subscription = Subscription.builder()
                 .user(user)
                 .plan(plan)
+                .gym(gym)
                 .status(SubscriptionStatus.ACTIVE)
                 .startDate(today)
                 .renewalDate(today.plusMonths(plan.getDurationMonths()))
@@ -92,7 +101,7 @@ public class SubscriptionService {
         return toResponse(subscriptionRepository.save(sub));
     }
 
-    public Page<SubscriptionResponse> getAllSubscriptions(Long userId, SubscriptionStatus status, Pageable pageable) {
+    public PageResponse<SubscriptionResponse> getAllSubscriptions(Long userId, SubscriptionStatus status, Pageable pageable) {
         Page<Subscription> page;
         if (userId != null && status != null) {
             page = subscriptionRepository.findByUserIdAndStatus(userId, status, pageable);
@@ -103,7 +112,7 @@ public class SubscriptionService {
         } else {
             page = subscriptionRepository.findAll(pageable);
         }
-        return page.map(this::toResponse);
+        return PageResponse.of(page.map(this::toResponse));
     }
 
     private SubscriptionResponse toResponse(Subscription sub) {
@@ -113,6 +122,8 @@ public class SubscriptionService {
                 plan.getName(),
                 plan.getPriceMonthly()
         );
+        Gym gym = sub.getGym();
+        GymSummary gymSummary = new GymSummary(gym.getId(), gym.getName(), gym.getAddress(), gym.getCity());
         Integer classesPerMonth = plan.getClassesPerMonth();
         Integer remaining = classesPerMonth != null
                 ? classesPerMonth - sub.getClassesUsedThisMonth()
@@ -120,6 +131,7 @@ public class SubscriptionService {
         return new SubscriptionResponse(
                 sub.getId(),
                 planSummary,
+                gymSummary,
                 sub.getStatus(),
                 sub.getStartDate(),
                 sub.getRenewalDate(),

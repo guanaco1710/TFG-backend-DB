@@ -1,7 +1,7 @@
 package com.example.tfgbackend.subscription;
 
-// TODO: implement SubscriptionService before these tests can go green.
-
+import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
 import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
@@ -11,9 +11,10 @@ import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
 import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
+import com.example.tfgbackend.gym.Gym;
+import com.example.tfgbackend.gym.GymRepository;
 import com.example.tfgbackend.membershipplan.MembershipPlan;
 import com.example.tfgbackend.membershipplan.MembershipPlanRepository;
-import com.example.tfgbackend.subscription.dto.CreateSubscriptionRequest;
 import com.example.tfgbackend.subscription.dto.SubscriptionResponse;
 import com.example.tfgbackend.user.User;
 import com.example.tfgbackend.user.UserRepository;
@@ -47,9 +48,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Pure unit tests for {@link SubscriptionService}. No Spring context — all collaborators are mocked.
- *
- * <p>The service does not yet exist; this test suite is intentionally written ahead of the
- * implementation (TDD). Compilation will fail until the production classes are created.
  */
 @ExtendWith(MockitoExtension.class)
 class SubscriptionServiceTest {
@@ -57,6 +55,7 @@ class SubscriptionServiceTest {
     @Mock SubscriptionRepository subscriptionRepository;
     @Mock UserRepository userRepository;
     @Mock MembershipPlanRepository membershipPlanRepository;
+    @Mock GymRepository gymRepository;
 
     @InjectMocks SubscriptionService subscriptionService;
 
@@ -67,6 +66,7 @@ class SubscriptionServiceTest {
     private User customer;
     private MembershipPlan activePlan;
     private MembershipPlan inactivePlan;
+    private Gym gym;
     private Subscription activeSubscription;
     private Subscription cancelledSubscription;
 
@@ -87,8 +87,13 @@ class SubscriptionServiceTest {
                 .classesPerMonth(5).allowsWaitlist(false).active(false).durationMonths(1).build();
         setId(inactivePlan, 11L);
 
+        gym = Gym.builder()
+                .name("FitZone Madrid").address("Calle Mayor 1").city("Madrid")
+                .phone("+34 911 000 001").openingHours("07:00-22:00").active(true).build();
+        setId(gym, 5L);
+
         activeSubscription = Subscription.builder()
-                .user(customer).plan(activePlan)
+                .user(customer).plan(activePlan).gym(gym)
                 .status(SubscriptionStatus.ACTIVE)
                 .startDate(LocalDate.now().minusDays(5))
                 .renewalDate(LocalDate.now().plusDays(25))
@@ -96,7 +101,7 @@ class SubscriptionServiceTest {
         setId(activeSubscription, 100L);
 
         cancelledSubscription = Subscription.builder()
-                .user(customer).plan(activePlan)
+                .user(customer).plan(activePlan).gym(gym)
                 .status(SubscriptionStatus.CANCELLED)
                 .startDate(LocalDate.now().minusMonths(2))
                 .renewalDate(LocalDate.now().minusMonths(1))
@@ -113,10 +118,11 @@ class SubscriptionServiceTest {
     class Subscribe {
 
         @Test
-        @DisplayName("happy path: creates ACTIVE subscription with startDate=today and renewalDate=today+durationMonths")
-        void subscribe_ValidUserAndPlan_CreatesActiveSubscription() {
+        @DisplayName("happy path: creates ACTIVE subscription and response has gym populated")
+        void subscribe_HappyPath_ReturnsResponseWithGym() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.empty());
             when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(inv -> {
@@ -125,7 +131,7 @@ class SubscriptionServiceTest {
                 return saved;
             });
 
-            SubscriptionResponse response = subscriptionService.subscribe(1L, 10L);
+            SubscriptionResponse response = subscriptionService.subscribe(1L, 10L, 5L);
 
             assertThat(response.id()).isEqualTo(200L);
             assertThat(response.status()).isEqualTo(SubscriptionStatus.ACTIVE);
@@ -133,15 +139,37 @@ class SubscriptionServiceTest {
             assertThat(response.renewalDate()).isEqualTo(LocalDate.now().plusMonths(1));
             assertThat(response.classesUsedThisMonth()).isZero();
 
+            // gym summary is populated
+            assertThat(response.gym()).isNotNull();
+            assertThat(response.gym().id()).isEqualTo(5L);
+            assertThat(response.gym().name()).isEqualTo("FitZone Madrid");
+            assertThat(response.gym().address()).isEqualTo("Calle Mayor 1");
+            assertThat(response.gym().city()).isEqualTo("Madrid");
+
             ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
             verify(subscriptionRepository).save(captor.capture());
             Subscription saved = captor.getValue();
             assertThat(saved.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
             assertThat(saved.getUser()).isEqualTo(customer);
             assertThat(saved.getPlan()).isEqualTo(activePlan);
+            assertThat(saved.getGym()).isEqualTo(gym);
             assertThat(saved.getStartDate()).isEqualTo(LocalDate.now());
             assertThat(saved.getRenewalDate()).isEqualTo(LocalDate.now().plusMonths(activePlan.getDurationMonths()));
             assertThat(saved.getClassesUsedThisMonth()).isZero();
+        }
+
+        @Test
+        @DisplayName("gym not found throws GymNotFoundException")
+        void subscribe_GymNotFound_ThrowsGymNotFoundException() {
+            when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
+            when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
+            when(gymRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 10L, 999L))
+                    .isInstanceOf(GymNotFoundException.class)
+                    .hasMessageContaining("999");
+
+            verify(subscriptionRepository, never()).save(any());
         }
 
         @Test
@@ -149,7 +177,7 @@ class SubscriptionServiceTest {
         void subscribe_UserNotFound_ThrowsUserNotFoundException() {
             when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> subscriptionService.subscribe(999L, 10L))
+            assertThatThrownBy(() -> subscriptionService.subscribe(999L, 10L, 5L))
                     .isInstanceOf(UserNotFoundException.class);
 
             verify(subscriptionRepository, never()).save(any());
@@ -161,7 +189,7 @@ class SubscriptionServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(999L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 999L))
+            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 999L, 5L))
                     .isInstanceOf(MembershipPlanNotFoundException.class);
 
             verify(subscriptionRepository, never()).save(any());
@@ -172,8 +200,9 @@ class SubscriptionServiceTest {
         void subscribe_PlanInactive_ThrowsMembershipPlanInactiveException() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(11L)).thenReturn(Optional.of(inactivePlan));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
 
-            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 11L))
+            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 11L, 5L))
                     .isInstanceOf(MembershipPlanInactiveException.class);
 
             verify(subscriptionRepository, never()).save(any());
@@ -181,13 +210,14 @@ class SubscriptionServiceTest {
 
         @Test
         @DisplayName("user already has ACTIVE subscription throws SubscriptionAlreadyActiveException")
-        void subscribe_UserAlreadyHasActiveSubscription_ThrowsSubscriptionAlreadyActiveException() {
+        void subscribe_AlreadyActiveSubscription_ThrowsSubscriptionAlreadyActiveException() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(activeSubscription));
 
-            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 10L))
+            assertThatThrownBy(() -> subscriptionService.subscribe(1L, 10L, 5L))
                     .isInstanceOf(SubscriptionAlreadyActiveException.class);
 
             verify(subscriptionRepository, never()).save(any());
@@ -203,6 +233,7 @@ class SubscriptionServiceTest {
 
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(12L)).thenReturn(Optional.of(quarterlyPlan));
+            when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.empty());
             when(subscriptionRepository.save(any())).thenAnswer(inv -> {
@@ -211,7 +242,7 @@ class SubscriptionServiceTest {
                 return s;
             });
 
-            SubscriptionResponse response = subscriptionService.subscribe(1L, 12L);
+            SubscriptionResponse response = subscriptionService.subscribe(1L, 12L, 5L);
 
             assertThat(response.renewalDate()).isEqualTo(LocalDate.now().plusMonths(3));
         }
@@ -226,8 +257,8 @@ class SubscriptionServiceTest {
     class GetMyActiveSubscription {
 
         @Test
-        @DisplayName("happy path: returns response for user's active subscription")
-        void getMyActiveSubscription_UserHasActiveSubscription_ReturnsResponse() {
+        @DisplayName("happy path: returns response including gym info")
+        void getMyActiveSubscription_HappyPath_ReturnsResponseWithGym() {
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(activeSubscription));
 
@@ -238,6 +269,13 @@ class SubscriptionServiceTest {
             assertThat(response.classesUsedThisMonth()).isEqualTo(3);
             assertThat(response.plan().id()).isEqualTo(10L);
             assertThat(response.plan().name()).isEqualTo("Gold");
+
+            // gym summary must be populated
+            assertThat(response.gym()).isNotNull();
+            assertThat(response.gym().id()).isEqualTo(5L);
+            assertThat(response.gym().name()).isEqualTo("FitZone Madrid");
+            assertThat(response.gym().address()).isEqualTo("Calle Mayor 1");
+            assertThat(response.gym().city()).isEqualTo("Madrid");
         }
 
         @Test
@@ -261,7 +299,7 @@ class SubscriptionServiceTest {
             setId(unlimitedPlan, 13L);
 
             Subscription unlimitedSub = Subscription.builder()
-                    .user(customer).plan(unlimitedPlan)
+                    .user(customer).plan(unlimitedPlan).gym(gym)
                     .status(SubscriptionStatus.ACTIVE)
                     .startDate(LocalDate.now()).renewalDate(LocalDate.now().plusMonths(1))
                     .classesUsedThisMonth(5).build();
@@ -347,7 +385,7 @@ class SubscriptionServiceTest {
         @DisplayName("expired subscription throws SubscriptionNotActiveException")
         void cancelSubscription_ExpiredSubscription_ThrowsSubscriptionNotActiveException() {
             Subscription expiredSub = Subscription.builder()
-                    .user(customer).plan(activePlan)
+                    .user(customer).plan(activePlan).gym(gym)
                     .status(SubscriptionStatus.EXPIRED)
                     .startDate(LocalDate.now().minusMonths(2))
                     .renewalDate(LocalDate.now().minusDays(1))
@@ -424,16 +462,20 @@ class SubscriptionServiceTest {
     class GetAllSubscriptions {
 
         @Test
-        @DisplayName("no filters returns all subscriptions paginated")
-        void getAllSubscriptions_NoFilters_ReturnsAllSubscriptions() {
+        @DisplayName("no filters returns PageResponse wrapping all subscriptions")
+        void getAllSubscriptions_NoFilters_ReturnsPageResponse() {
             Page<Subscription> page = new PageImpl<>(
                     List.of(activeSubscription, cancelledSubscription), PageRequest.of(0, 10), 2);
             when(subscriptionRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-            Page<SubscriptionResponse> result =
+            PageResponse<SubscriptionResponse> result =
                     subscriptionService.getAllSubscriptions(null, null, PageRequest.of(0, 10));
 
-            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result).isNotNull();
+            assertThat(result.totalElements()).isEqualTo(2);
+            assertThat(result.content()).hasSize(2);
+            assertThat(result.content().get(0).id()).isEqualTo(100L);
+            assertThat(result.content().get(1).id()).isEqualTo(101L);
         }
 
         @Test
@@ -443,11 +485,11 @@ class SubscriptionServiceTest {
                     List.of(activeSubscription), PageRequest.of(0, 10), 1);
             when(subscriptionRepository.findByUserId(eq(1L), any(Pageable.class))).thenReturn(page);
 
-            Page<SubscriptionResponse> result =
+            PageResponse<SubscriptionResponse> result =
                     subscriptionService.getAllSubscriptions(1L, null, PageRequest.of(0, 10));
 
-            assertThat(result.getTotalElements()).isEqualTo(1);
-            assertThat(result.getContent().get(0).id()).isEqualTo(100L);
+            assertThat(result.totalElements()).isEqualTo(1);
+            assertThat(result.content().get(0).id()).isEqualTo(100L);
         }
 
         @Test
@@ -458,11 +500,11 @@ class SubscriptionServiceTest {
             when(subscriptionRepository.findByStatus(eq(SubscriptionStatus.ACTIVE), any(Pageable.class)))
                     .thenReturn(page);
 
-            Page<SubscriptionResponse> result =
+            PageResponse<SubscriptionResponse> result =
                     subscriptionService.getAllSubscriptions(null, SubscriptionStatus.ACTIVE, PageRequest.of(0, 10));
 
-            assertThat(result.getTotalElements()).isEqualTo(1);
-            assertThat(result.getContent().get(0).status()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(result.totalElements()).isEqualTo(1);
+            assertThat(result.content().get(0).status()).isEqualTo(SubscriptionStatus.ACTIVE);
         }
 
         @Test
@@ -474,11 +516,11 @@ class SubscriptionServiceTest {
                     eq(1L), eq(SubscriptionStatus.ACTIVE), any(Pageable.class)))
                     .thenReturn(page);
 
-            Page<SubscriptionResponse> result =
+            PageResponse<SubscriptionResponse> result =
                     subscriptionService.getAllSubscriptions(1L, SubscriptionStatus.ACTIVE, PageRequest.of(0, 10));
 
-            assertThat(result.getTotalElements()).isEqualTo(1);
-            assertThat(result.getContent().get(0).status()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(result.totalElements()).isEqualTo(1);
+            assertThat(result.content().get(0).status()).isEqualTo(SubscriptionStatus.ACTIVE);
         }
     }
 

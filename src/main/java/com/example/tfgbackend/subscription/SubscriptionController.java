@@ -1,13 +1,13 @@
 package com.example.tfgbackend.subscription;
 
 import com.example.tfgbackend.auth.AuthenticatedUser;
+import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.subscription.dto.CreateSubscriptionRequest;
 import com.example.tfgbackend.subscription.dto.SubscriptionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +31,7 @@ public class SubscriptionController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<SubscriptionResponse>> getAllSubscriptions(
+    public ResponseEntity<PageResponse<SubscriptionResponse>> getAllSubscriptions(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) SubscriptionStatus status,
             Pageable pageable) {
@@ -44,7 +44,7 @@ public class SubscriptionController {
             @Valid @RequestBody CreateSubscriptionRequest request,
             @AuthenticationPrincipal AuthenticatedUser principal) {
         SubscriptionResponse response = subscriptionService.subscribe(
-                principal.userId(), request.membershipPlanId());
+                principal.userId(), request.membershipPlanId(), request.gymId());
         URI location = URI.create("/api/v1/subscriptions/" + response.id());
         return ResponseEntity.created(location).body(response);
     }

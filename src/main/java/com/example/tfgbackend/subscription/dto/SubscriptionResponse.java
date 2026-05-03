@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record SubscriptionResponse(
         Long id,
         MembershipPlanSummary plan,
+        GymSummary gym,
         SubscriptionStatus status,
         LocalDate startDate,
         LocalDate renewalDate,

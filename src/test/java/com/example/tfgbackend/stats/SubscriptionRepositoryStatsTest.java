@@ -3,6 +3,7 @@ package com.example.tfgbackend.stats;
 import com.example.tfgbackend.AbstractRepositoryTest;
 import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
+import com.example.tfgbackend.gym.Gym;
 import com.example.tfgbackend.membershipplan.MembershipPlan;
 import com.example.tfgbackend.subscription.Subscription;
 import com.example.tfgbackend.subscription.SubscriptionRepository;
@@ -33,6 +34,7 @@ class SubscriptionRepositoryStatsTest extends AbstractRepositoryTest {
     private User alice;
     private MembershipPlan basicPlan;
     private MembershipPlan premiumPlan;
+    private Gym gym;
 
     @BeforeEach
     void setUp() {
@@ -47,11 +49,14 @@ class SubscriptionRepositoryStatsTest extends AbstractRepositoryTest {
         premiumPlan = em.persistAndFlush(MembershipPlan.builder()
                 .name("Premium").priceMonthly(BigDecimal.valueOf(50))
                 .classesPerMonth(null).durationMonths(1).build());
+
+        gym = em.persistAndFlush(Gym.builder()
+                .name("FitZone").address("Calle Mayor 1").city("Madrid").build());
     }
 
     private Subscription persist(User user, MembershipPlan plan, SubscriptionStatus status, LocalDate startDate) {
         return em.persistAndFlush(Subscription.builder()
-                .user(user).plan(plan).status(status)
+                .user(user).plan(plan).gym(gym).status(status)
                 .startDate(startDate)
                 .renewalDate(startDate.plusMonths(1))
                 .build());
