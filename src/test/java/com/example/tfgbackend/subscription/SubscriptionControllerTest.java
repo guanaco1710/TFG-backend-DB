@@ -1,10 +1,10 @@
 package com.example.tfgbackend.subscription;
 
-// TODO: implement SubscriptionController before these tests can go green.
-
 import com.example.tfgbackend.auth.AuthenticatedUser;
 import com.example.tfgbackend.auth.JwtService;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
+import com.example.tfgbackend.common.PageResponse;
+import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
@@ -14,6 +14,7 @@ import com.example.tfgbackend.config.SecurityConfig;
 import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.subscription.dto.CreateSubscriptionRequest;
+import com.example.tfgbackend.subscription.dto.GymSummary;
 import com.example.tfgbackend.subscription.dto.MembershipPlanSummary;
 import com.example.tfgbackend.subscription.dto.SubscriptionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -50,12 +48,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Slice test for {@link SubscriptionController}.
  *
- * <p>Spring Security is active; requests are authenticated via
+ * Spring Security is active; requests are authenticated via
  * {@link org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors#authentication}
  * so the JWT filter is bypassed.
- *
- * <p>The controller does not yet exist; this test suite is intentionally written ahead of the
- * implementation (TDD). Compilation will fail until the production classes are created.
  */
 @WebMvcTest(SubscriptionController.class)
 @Import({GlobalExceptionHandler.class, SecurityConfig.class})
@@ -90,14 +85,23 @@ class SubscriptionControllerTest {
     // Fixture helpers
     // ---------------------------------------------------------------------------
 
+    private GymSummary gymSummary() {
+        return new GymSummary(5L, "FitZone Madrid", "Calle Mayor 1", "Madrid");
+    }
+
     private SubscriptionResponse subscriptionResponse(Long id, SubscriptionStatus status) {
         MembershipPlanSummary planSummary = new MembershipPlanSummary(10L, "Gold", new BigDecimal("49.99"));
-        return new SubscriptionResponse(id, planSummary, status,
+        return new SubscriptionResponse(id, planSummary, gymSummary(), status,
                 LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), 3, 17);
     }
 
+    private PageResponse<SubscriptionResponse> pageResponse(SubscriptionResponse... items) {
+        List<SubscriptionResponse> content = List.of(items);
+        return new PageResponse<>(content, 0, 10, content.size(), 1, false);
+    }
+
     // ---------------------------------------------------------------------------
-    // GET /api/v1/subscriptions
+    // GET /api/v1/subscriptions — admin list endpoint
     // ---------------------------------------------------------------------------
 
     @Nested
@@ -105,11 +109,9 @@ class SubscriptionControllerTest {
     class GetAllSubscriptions {
 
         @Test
-        @DisplayName("admin retrieves all subscriptions — returns 200 with page")
-        void getAllSubscriptions_AdminRequest_Returns200WithPage() throws Exception {
-            Page<SubscriptionResponse> page = new PageImpl<>(
-                    List.of(subscriptionResponse(100L, SubscriptionStatus.ACTIVE)),
-                    PageRequest.of(0, 10), 1);
+        @DisplayName("admin retrieves all subscriptions — returns 200 with PageResponse shape")
+        void getAllSubscriptions_AdminRequest_Returns200WithPageResponseShape() throws Exception {
+            PageResponse<SubscriptionResponse> page = pageResponse(subscriptionResponse(100L, SubscriptionStatus.ACTIVE));
             when(subscriptionService.getAllSubscriptions(any(), any(), any())).thenReturn(page);
 
             mvc.perform(get(BASE)
@@ -118,7 +120,26 @@ class SubscriptionControllerTest {
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content[0].id").value(100))
                     .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.totalElements").value(1));
+                    .andExpect(jsonPath("$.totalElements").value(1))
+                    .andExpect(jsonPath("$.page").value(0))
+                    .andExpect(jsonPath("$.size").value(10))
+                    .andExpect(jsonPath("$.totalPages").value(1))
+                    .andExpect(jsonPath("$.hasMore").value(false));
+        }
+
+        @Test
+        @DisplayName("admin retrieves subscriptions — response content includes gym object")
+        void getAllSubscriptions_AdminRequest_ResponseContainsGymObject() throws Exception {
+            PageResponse<SubscriptionResponse> page = pageResponse(subscriptionResponse(100L, SubscriptionStatus.ACTIVE));
+            when(subscriptionService.getAllSubscriptions(any(), any(), any())).thenReturn(page);
+
+            mvc.perform(get(BASE)
+                            .with(authentication(adminAuth(99L))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].gym.id").value(5))
+                    .andExpect(jsonPath("$.content[0].gym.name").value("FitZone Madrid"))
+                    .andExpect(jsonPath("$.content[0].gym.address").value("Calle Mayor 1"))
+                    .andExpect(jsonPath("$.content[0].gym.city").value("Madrid"));
         }
 
         @Test
@@ -139,9 +160,7 @@ class SubscriptionControllerTest {
         @Test
         @DisplayName("admin filters by userId query param — service receives userId")
         void getAllSubscriptions_UserIdFilterParam_IsForwardedToService() throws Exception {
-            Page<SubscriptionResponse> page = new PageImpl<>(
-                    List.of(subscriptionResponse(100L, SubscriptionStatus.ACTIVE)),
-                    PageRequest.of(0, 10), 1);
+            PageResponse<SubscriptionResponse> page = pageResponse(subscriptionResponse(100L, SubscriptionStatus.ACTIVE));
             when(subscriptionService.getAllSubscriptions(eq(1L), any(), any())).thenReturn(page);
 
             mvc.perform(get(BASE)
@@ -153,7 +172,7 @@ class SubscriptionControllerTest {
         @Test
         @DisplayName("admin filters by status query param — service receives status")
         void getAllSubscriptions_StatusFilterParam_IsForwardedToService() throws Exception {
-            Page<SubscriptionResponse> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            PageResponse<SubscriptionResponse> page = pageResponse();
             when(subscriptionService.getAllSubscriptions(any(), eq(SubscriptionStatus.CANCELLED), any()))
                     .thenReturn(page);
 
@@ -165,7 +184,7 @@ class SubscriptionControllerTest {
     }
 
     // ---------------------------------------------------------------------------
-    // POST /api/v1/subscriptions
+    // POST /api/v1/subscriptions — subscribe
     // ---------------------------------------------------------------------------
 
     @Nested
@@ -173,12 +192,12 @@ class SubscriptionControllerTest {
     class Subscribe {
 
         @Test
-        @DisplayName("customer subscribes to a plan — returns 201 with Location and body")
-        void subscribe_CustomerValidRequest_Returns201WithLocationAndBody() throws Exception {
+        @DisplayName("customer subscribes with planId and gymId — returns 201 with Location, body contains gym")
+        void subscribe_CustomerValidRequest_Returns201WithLocationAndGymInBody() throws Exception {
             SubscriptionResponse response = subscriptionResponse(200L, SubscriptionStatus.ACTIVE);
-            when(subscriptionService.subscribe(eq(1L), eq(10L))).thenReturn(response);
+            when(subscriptionService.subscribe(eq(1L), eq(10L), eq(5L))).thenReturn(response);
 
-            CreateSubscriptionRequest body = new CreateSubscriptionRequest(10L);
+            CreateSubscriptionRequest body = new CreateSubscriptionRequest(10L, 5L);
 
             mvc.perform(post(BASE)
                             .with(authentication(customerAuth(1L)))
@@ -188,7 +207,21 @@ class SubscriptionControllerTest {
                     .andExpect(header().string("Location", BASE + "/200"))
                     .andExpect(jsonPath("$.id").value(200))
                     .andExpect(jsonPath("$.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.plan.id").value(10));
+                    .andExpect(jsonPath("$.plan.id").value(10))
+                    .andExpect(jsonPath("$.gym.id").value(5))
+                    .andExpect(jsonPath("$.gym.name").value("FitZone Madrid"))
+                    .andExpect(jsonPath("$.gym.city").value("Madrid"));
+        }
+
+        @Test
+        @DisplayName("missing gymId fails validation — returns 400")
+        void subscribe_MissingGymId_Returns400() throws Exception {
+            mvc.perform(post(BASE)
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"membershipPlanId\": 10, \"gymId\": null}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("ValidationFailed"));
         }
 
         @Test
@@ -197,21 +230,35 @@ class SubscriptionControllerTest {
             mvc.perform(post(BASE)
                             .with(authentication(customerAuth(1L)))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"membershipPlanId\": null}"))
+                            .content("{\"membershipPlanId\": null, \"gymId\": 5}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").value("ValidationFailed"));
         }
 
         @Test
+        @DisplayName("gym not found — returns 404 with GymNotFound error")
+        void subscribe_GymNotFound_Returns404() throws Exception {
+            when(subscriptionService.subscribe(any(), any(), any()))
+                    .thenThrow(new GymNotFoundException(999L));
+
+            mvc.perform(post(BASE)
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(10L, 999L))))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error").value("GymNotFound"));
+        }
+
+        @Test
         @DisplayName("user already has active subscription — returns 409")
         void subscribe_AlreadyActiveSubscription_Returns409() throws Exception {
-            when(subscriptionService.subscribe(any(), any()))
+            when(subscriptionService.subscribe(any(), any(), any()))
                     .thenThrow(new SubscriptionAlreadyActiveException(1L));
 
             mvc.perform(post(BASE)
                             .with(authentication(customerAuth(1L)))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(10L))))
+                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(10L, 5L))))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("SubscriptionAlreadyActive"));
         }
@@ -219,13 +266,13 @@ class SubscriptionControllerTest {
         @Test
         @DisplayName("plan is inactive — returns 409")
         void subscribe_PlanInactive_Returns409() throws Exception {
-            when(subscriptionService.subscribe(any(), any()))
+            when(subscriptionService.subscribe(any(), any(), any()))
                     .thenThrow(new MembershipPlanInactiveException(11L));
 
             mvc.perform(post(BASE)
                             .with(authentication(customerAuth(1L)))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(11L))))
+                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(11L, 5L))))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("MembershipPlanInactive"));
         }
@@ -235,13 +282,13 @@ class SubscriptionControllerTest {
         void subscribe_Unauthenticated_Returns401() throws Exception {
             mvc.perform(post(BASE)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(10L))))
+                            .content(mapper.writeValueAsString(new CreateSubscriptionRequest(10L, 5L))))
                     .andExpect(status().isUnauthorized());
         }
     }
 
     // ---------------------------------------------------------------------------
-    // GET /api/v1/subscriptions/me
+    // GET /api/v1/subscriptions/me — getMyActiveSubscription
     // ---------------------------------------------------------------------------
 
     @Nested
@@ -249,8 +296,8 @@ class SubscriptionControllerTest {
     class GetMyActiveSubscription {
 
         @Test
-        @DisplayName("customer retrieves own active subscription — returns 200 with body")
-        void getMyActiveSubscription_HasActiveSubscription_Returns200() throws Exception {
+        @DisplayName("customer retrieves own active subscription — returns 200 with gym object")
+        void getMyActiveSubscription_HasActiveSubscription_Returns200WithGym() throws Exception {
             SubscriptionResponse response = subscriptionResponse(100L, SubscriptionStatus.ACTIVE);
             when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(response);
 
@@ -261,7 +308,11 @@ class SubscriptionControllerTest {
                     .andExpect(jsonPath("$.status").value("ACTIVE"))
                     .andExpect(jsonPath("$.plan.name").value("Gold"))
                     .andExpect(jsonPath("$.classesUsedThisMonth").value(3))
-                    .andExpect(jsonPath("$.classesRemainingThisMonth").value(17));
+                    .andExpect(jsonPath("$.classesRemainingThisMonth").value(17))
+                    .andExpect(jsonPath("$.gym.id").value(5))
+                    .andExpect(jsonPath("$.gym.name").value("FitZone Madrid"))
+                    .andExpect(jsonPath("$.gym.address").value("Calle Mayor 1"))
+                    .andExpect(jsonPath("$.gym.city").value("Madrid"));
         }
 
         @Test
@@ -285,7 +336,7 @@ class SubscriptionControllerTest {
     }
 
     // ---------------------------------------------------------------------------
-    // POST /api/v1/subscriptions/{id}/cancel
+    // POST /api/v1/subscriptions/{id}/cancel — cancelSubscription
     // ---------------------------------------------------------------------------
 
     @Nested
@@ -341,7 +392,7 @@ class SubscriptionControllerTest {
     }
 
     // ---------------------------------------------------------------------------
-    // POST /api/v1/subscriptions/{id}/renew
+    // POST /api/v1/subscriptions/{id}/renew — renewSubscription
     // ---------------------------------------------------------------------------
 
     @Nested
@@ -349,7 +400,7 @@ class SubscriptionControllerTest {
     class RenewSubscription {
 
         @Test
-        @DisplayName("admin renews subscription — returns 200 with updated body")
+        @DisplayName("admin renews subscription — returns 200 with updated body including gym")
         void renewSubscription_AdminRequest_Returns200WithUpdatedBody() throws Exception {
             SubscriptionResponse response = subscriptionResponse(100L, SubscriptionStatus.ACTIVE);
             when(subscriptionService.renewSubscription(100L)).thenReturn(response);
@@ -358,7 +409,8 @@ class SubscriptionControllerTest {
                             .with(authentication(adminAuth(99L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(100))
-                    .andExpect(jsonPath("$.status").value("ACTIVE"));
+                    .andExpect(jsonPath("$.status").value("ACTIVE"))
+                    .andExpect(jsonPath("$.gym.id").value(5));
         }
 
         @Test

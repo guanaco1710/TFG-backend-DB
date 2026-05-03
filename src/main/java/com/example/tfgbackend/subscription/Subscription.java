@@ -2,6 +2,7 @@ package com.example.tfgbackend.subscription;
 
 import com.example.tfgbackend.common.BaseEntity;
 import com.example.tfgbackend.enums.SubscriptionStatus;
+import com.example.tfgbackend.gym.Gym;
 import com.example.tfgbackend.membershipplan.MembershipPlan;
 import com.example.tfgbackend.user.User;
 import jakarta.persistence.Column;
@@ -43,6 +44,10 @@ public class Subscription extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "plan_id", nullable = false)
     private MembershipPlan plan;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "gym_id", nullable = false)
+    private Gym gym;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

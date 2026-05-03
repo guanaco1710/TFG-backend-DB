@@ -186,6 +186,7 @@ CREATE TABLE subscription (
     id                      BIGSERIAL   PRIMARY KEY,
     user_id                 BIGINT      NOT NULL REFERENCES app_user(id)        ON DELETE RESTRICT,
     plan_id                 BIGINT      NOT NULL REFERENCES membership_plan(id) ON DELETE RESTRICT,
+    gym_id                  BIGINT      NOT NULL REFERENCES gym(id)             ON DELETE RESTRICT,
     status                  VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
                                 CHECK (status IN ('ACTIVE', 'CANCELLED', 'EXPIRED')),
     start_date              DATE        NOT NULL,
