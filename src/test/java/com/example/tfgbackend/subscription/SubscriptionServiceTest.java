@@ -4,7 +4,6 @@ import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
-import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
@@ -262,7 +261,7 @@ class SubscriptionServiceTest {
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(activeSubscription));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L);
+            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
 
             assertThat(response.id()).isEqualTo(100L);
             assertThat(response.status()).isEqualTo(SubscriptionStatus.ACTIVE);
@@ -285,7 +284,7 @@ class SubscriptionServiceTest {
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(activeSubscription));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L);
+            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
 
             assertThat(response.classesRemainingThisMonth()).isEqualTo(17); // 20 - 3
         }
@@ -308,19 +307,18 @@ class SubscriptionServiceTest {
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(unlimitedSub));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L);
+            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
 
             assertThat(response.classesRemainingThisMonth()).isNull();
         }
 
         @Test
-        @DisplayName("no active subscription throws NoActiveSubscriptionException")
-        void getMyActiveSubscription_NoActiveSubscription_ThrowsNoActiveSubscriptionException() {
+        @DisplayName("no active subscription returns Optional.empty()")
+        void getMyActiveSubscription_NoActiveSubscription_ReturnsEmpty() {
             when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> subscriptionService.getMyActiveSubscription(1L))
-                    .isInstanceOf(NoActiveSubscriptionException.class);
+            assertThat(subscriptionService.getMyActiveSubscription(1L)).isEmpty();
         }
     }
 

@@ -2,6 +2,7 @@ package com.example.tfgbackend.subscription.dto;
 
 import com.example.tfgbackend.enums.SubscriptionStatus;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 public record SubscriptionResponse(
@@ -12,5 +13,6 @@ public record SubscriptionResponse(
         LocalDate startDate,
         LocalDate renewalDate,
         int classesUsedThisMonth,
-        Integer classesRemainingThisMonth
+        Integer classesRemainingThisMonth,
+        Instant cancelledAt
 ) {}

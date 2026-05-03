@@ -4,7 +4,6 @@ import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
-import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
@@ -26,7 +25,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -68,10 +69,9 @@ public class SubscriptionService {
         return toResponse(subscriptionRepository.save(subscription));
     }
 
-    public SubscriptionResponse getMyActiveSubscription(Long userId) {
-        Subscription sub = subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
-                .orElseThrow(() -> new NoActiveSubscriptionException("No active subscription for user: " + userId));
-        return toResponse(sub);
+    public Optional<SubscriptionResponse> getMyActiveSubscription(Long userId) {
+        return subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+                .map(this::toResponse);
     }
 
     @Transactional
@@ -88,6 +88,7 @@ public class SubscriptionService {
         }
 
         sub.setStatus(SubscriptionStatus.CANCELLED);
+        sub.setCancelledAt(Instant.now());
         subscriptionRepository.save(sub);
     }
 
@@ -136,7 +137,8 @@ public class SubscriptionService {
                 sub.getStartDate(),
                 sub.getRenewalDate(),
                 sub.getClassesUsedThisMonth(),
-                remaining
+                remaining,
+                sub.getCancelledAt()
         );
     }
 }

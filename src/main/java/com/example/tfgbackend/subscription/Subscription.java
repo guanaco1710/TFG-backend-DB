@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -63,4 +64,7 @@ public class Subscription extends BaseEntity {
     @Column(name = "classes_used_this_month", nullable = false)
     @Builder.Default
     private int classesUsedThisMonth = 0;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
 }
