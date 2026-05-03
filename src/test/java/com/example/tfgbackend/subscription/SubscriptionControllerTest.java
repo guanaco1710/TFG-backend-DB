@@ -6,7 +6,6 @@ import com.example.tfgbackend.common.GlobalExceptionHandler;
 import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
-import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
@@ -33,6 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -92,7 +92,7 @@ class SubscriptionControllerTest {
     private SubscriptionResponse subscriptionResponse(Long id, SubscriptionStatus status) {
         MembershipPlanSummary planSummary = new MembershipPlanSummary(10L, "Gold", new BigDecimal("49.99"));
         return new SubscriptionResponse(id, planSummary, gymSummary(), status,
-                LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), 3, 17);
+                LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), 3, 17, null);
     }
 
     private PageResponse<SubscriptionResponse> pageResponse(SubscriptionResponse... items) {
@@ -299,7 +299,7 @@ class SubscriptionControllerTest {
         @DisplayName("customer retrieves own active subscription — returns 200 with gym object")
         void getMyActiveSubscription_HasActiveSubscription_Returns200WithGym() throws Exception {
             SubscriptionResponse response = subscriptionResponse(100L, SubscriptionStatus.ACTIVE);
-            when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(response);
+            when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(Optional.of(response));
 
             mvc.perform(get(BASE + "/me")
                             .with(authentication(customerAuth(1L))))
@@ -316,15 +316,13 @@ class SubscriptionControllerTest {
         }
 
         @Test
-        @DisplayName("no active subscription — returns 404")
-        void getMyActiveSubscription_NoActiveSubscription_Returns404() throws Exception {
-            when(subscriptionService.getMyActiveSubscription(1L))
-                    .thenThrow(new NoActiveSubscriptionException("No active subscription for user: 1"));
+        @DisplayName("no active subscription — returns 204 No Content")
+        void getMyActiveSubscription_NoActiveSubscription_Returns204() throws Exception {
+            when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(Optional.empty());
 
             mvc.perform(get(BASE + "/me")
                             .with(authentication(customerAuth(1L))))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.error").value("NoActiveSubscription"));
+                    .andExpect(status().isNoContent());
         }
 
         @Test

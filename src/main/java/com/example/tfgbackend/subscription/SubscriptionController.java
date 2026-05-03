@@ -53,7 +53,9 @@ public class SubscriptionController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<SubscriptionResponse> getMyActiveSubscription(
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        return ResponseEntity.ok(subscriptionService.getMyActiveSubscription(principal.userId()));
+        return subscriptionService.getMyActiveSubscription(principal.userId())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/{id}/cancel")
