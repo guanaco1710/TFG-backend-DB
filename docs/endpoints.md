@@ -176,7 +176,9 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
   ],
   "page": 0,
   "size": 20,
-  "total": 100
+  "totalElements": 100,
+  "totalPages": 5,
+  "hasMore": true
 }
 ```
 
@@ -219,6 +221,30 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
 | `POST` | `/gyms` | Create a gym | `ADMIN` |
 | `PUT` | `/gyms/{id}` | Update a gym | `ADMIN` |
 | `DELETE` | `/gyms/{id}` | Delete a gym | `ADMIN` |
+
+### GET /gyms — Response 200
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "GymBook Central",
+      "address": "Calle Mayor 1",
+      "city": "Madrid",
+      "phone": "+34 91 000 0000",
+      "openingHours": "Mon–Fri 07:00–22:00, Sat–Sun 09:00–20:00",
+      "active": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
 
 ### POST /gyms — Request
 ```json
@@ -438,15 +464,23 @@ Concrete scheduled occurrences of a class type.
 
 ### POST /subscriptions — Request
 ```json
-{ "membershipPlanId": 2 }
+{
+  "membershipPlanId": 2,
+  "gymId": 1
+}
 // Response 201 + Location: /api/v1/subscriptions/{id}
 ```
 
 ### GET /subscriptions/me — Response 200
+
+Always returns **one object** — the single active subscription for the authenticated user.  
+Returns 404 if the user has no active subscription.
+
 ```json
 {
   "id": 7,
   "plan": { "id": 2, "name": "Premium Monthly", "priceMonthly": 49.99 },
+  "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
   "status": "ACTIVE",
   "startDate": "2024-05-01",
   "renewalDate": "2024-06-01",
@@ -454,6 +488,9 @@ Concrete scheduled occurrences of a class type.
   "classesRemainingThisMonth": 7
 }
 ```
+
+`status` is one of `ACTIVE`, `CANCELLED`, `EXPIRED`.  
+`classesRemainingThisMonth` is `null` when the plan grants unlimited classes.
 
 ### GET /subscriptions — Query params (admin)
 | Param | Type | Description |
@@ -463,6 +500,29 @@ Concrete scheduled occurrences of a class type.
 | `status` | `ACTIVE\|CANCELLED\|EXPIRED` | Filter by status |
 | `page` | int | |
 | `size` | int | |
+
+### GET /subscriptions — Response 200 (admin)
+```json
+{
+  "content": [
+    {
+      "id": 7,
+      "plan": { "id": 2, "name": "Premium Monthly", "priceMonthly": 49.99 },
+      "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
+      "status": "ACTIVE",
+      "startDate": "2024-05-01",
+      "renewalDate": "2024-06-01",
+      "classesUsedThisMonth": 5,
+      "classesRemainingThisMonth": 7
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 198,
+  "totalPages": 10,
+  "hasMore": true
+}
+```
 
 ---
 
