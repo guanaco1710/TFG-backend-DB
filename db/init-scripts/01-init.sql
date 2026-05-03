@@ -192,6 +192,7 @@ CREATE TABLE subscription (
     start_date              DATE        NOT NULL,
     renewal_date            DATE        NOT NULL,
     classes_used_this_month INTEGER     NOT NULL DEFAULT 0,
+    cancelled_at            TIMESTAMPTZ,
     version                 BIGINT      NOT NULL DEFAULT 0,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -15,6 +15,7 @@ import com.example.tfgbackend.common.exception.BookingAlreadyCancelledException;
 import com.example.tfgbackend.common.exception.BookingNotFoundException;
 import com.example.tfgbackend.common.exception.ClassFullException;
 import com.example.tfgbackend.common.exception.MonthlyClassLimitReachedException;
+import com.example.tfgbackend.common.exception.NoActiveSubscriptionException;
 import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
@@ -229,6 +230,22 @@ class BookingControllerTest {
                             .content(mapper.writeValueAsString(body)))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error").value("MonthlyClassLimitReached"));
+        }
+
+        @Test
+        @DisplayName("no active subscription returns 404")
+        void createBooking_NoActiveSubscription_Returns404() throws Exception {
+            when(bookingService.createBooking(any(), any()))
+                    .thenThrow(new NoActiveSubscriptionException("No active subscription for user: 1"));
+
+            CreateBookingRequest body = new CreateBookingRequest(100L);
+
+            mvc.perform(post(BOOKINGS_BASE)
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(body)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error").value("NoActiveSubscription"));
         }
     }
 
