@@ -282,6 +282,27 @@ class GymIntegrationTest {
     }
 
     @Test
+    @DisplayName("CUSTOMER filters gyms by name — only matching gym returned")
+    void customerListsGymsByName_ReturnsOnlyMatchingGyms() {
+        String adminToken = registerAndGetToken("admin_name_filter", UserRole.ADMIN);
+        String uniqueName = "NameFilter " + SUFFIX;
+        GymRequest request = new GymRequest(uniqueName, "Filter Street 1", "Madrid", null, null);
+
+        ResponseEntity<GymResponse> createResp = rest.exchange(
+                url(GYMS_BASE), HttpMethod.POST,
+                gymEntity(adminToken, request), GymResponse.class);
+        assertThat(createResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        String customerToken = registerAndGetToken("customer_name_filter", UserRole.CUSTOMER);
+        ResponseEntity<String> listResp = rest.exchange(
+                url(GYMS_BASE + "?name=NameFilter"), HttpMethod.GET,
+                voidEntity(customerToken), String.class);
+
+        assertThat(listResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(listResp.getBody()).contains("NameFilter");
+    }
+
+    @Test
     @DisplayName("ADMIN creates gym with duplicate name → 409")
     void adminCreatesGymWithDuplicateName_Returns409() {
         String adminToken = registerAndGetToken("admin_dup", UserRole.ADMIN);

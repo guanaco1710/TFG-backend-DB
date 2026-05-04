@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -114,7 +115,7 @@ class GymControllerTest {
         @Test
         @DisplayName("authenticated user retrieves gym list — returns 200 with page body")
         void listGyms_AuthenticatedUser_Returns200WithPage() throws Exception {
-            when(gymService.listGyms(any(), any(), any(), any()))
+            when(gymService.listGyms(any(), any(), any(), any(), any()))
                     .thenReturn(singlePageResponse(gymResponse(1L)));
 
             mvc.perform(get(BASE).with(authentication(customerAuth())))
@@ -128,7 +129,7 @@ class GymControllerTest {
         @Test
         @DisplayName("admin retrieves gym list — returns 200")
         void listGyms_AdminUser_Returns200() throws Exception {
-            when(gymService.listGyms(any(), any(), any(), any()))
+            when(gymService.listGyms(any(), any(), any(), any(), any()))
                     .thenReturn(singlePageResponse(gymResponse(1L)));
 
             mvc.perform(get(BASE).with(authentication(adminAuth())))
@@ -145,15 +146,29 @@ class GymControllerTest {
         @Test
         @DisplayName("query parameters are forwarded — returns 200")
         void listGyms_WithQueryParams_Returns200() throws Exception {
-            when(gymService.listGyms(eq("Madrid"), eq(true), eq("FitZone"), any()))
+            when(gymService.listGyms(eq("Madrid"), eq(true), eq("FitZone"), eq("Central"), any()))
                     .thenReturn(singlePageResponse(gymResponse(1L)));
 
             mvc.perform(get(BASE)
                             .param("city", "Madrid")
                             .param("active", "true")
-                            .param("q", "FitZone")
+                            .param("name", "FitZone")
+                            .param("q", "Central")
                             .with(authentication(customerAuth())))
                     .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("name parameter is forwarded to service — returns 200")
+        void listGyms_WithNameParam_Returns200() throws Exception {
+            when(gymService.listGyms(isNull(), isNull(), eq("GymBook"), isNull(), any()))
+                    .thenReturn(singlePageResponse(gymResponse(1L)));
+
+            mvc.perform(get(BASE)
+                            .param("name", "GymBook")
+                            .with(authentication(customerAuth())))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].name").value("FitZone Madrid"));
         }
     }
 

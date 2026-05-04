@@ -17,11 +17,12 @@ public class GymService {
 
     private final GymRepository gymRepository;
 
-    public PageResponse<GymResponse> listGyms(String city, Boolean active, String q, Pageable pageable) {
+    public PageResponse<GymResponse> listGyms(String city, Boolean active, String name, String q, Pageable pageable) {
         // Treat blank strings as null so the JPQL filter skips them
         String cityFilter = (city != null && !city.isBlank()) ? city : null;
+        String nameFilter = (name != null && !name.isBlank()) ? name : null;
         String qFilter = (q != null && !q.isBlank()) ? q : null;
-        return PageResponse.of(gymRepository.findByFilters(cityFilter, active, qFilter, pageable)
+        return PageResponse.of(gymRepository.findByFilters(cityFilter, active, nameFilter, qFilter, pageable)
                 .map(this::toResponse));
     }
 

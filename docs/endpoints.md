@@ -222,6 +222,17 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
 | `PUT` | `/gyms/{id}` | Update a gym | `ADMIN` |
 | `DELETE` | `/gyms/{id}` | Delete a gym | `ADMIN` |
 
+### GET /gyms — Query params
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `name` | String | Filter by gym name (case-insensitive partial match) |
+| `city` | String | Filter by city (exact, case-insensitive) |
+| `active` | Boolean | Filter by active status |
+| `q` | String | Full-text search across name and address |
+| `page` | Int | Page index (0-based, default 0) |
+| `size` | Int | Page size (default 20) |
+
 ### GET /gyms — Response 200
 ```json
 {

@@ -140,7 +140,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("no filters — returns all gyms")
         void findByFilters_NoFilters_ReturnsAll() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getTotalElements()).isEqualTo(3);
         }
@@ -148,7 +148,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("city filter 'Madrid' — returns only Madrid gyms")
         void findByFilters_CityMadrid_ReturnsMadridGymsOnly() {
-            Page<Gym> result = gymRepository.findByFilters("Madrid", null, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters("Madrid", null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getContent())
                     .hasSize(2)
@@ -158,7 +158,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("city filter is case-insensitive — 'madrid' matches 'Madrid'")
         void findByFilters_CityLowercase_MatchesCaseInsensitive() {
-            Page<Gym> result = gymRepository.findByFilters("madrid", null, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters("madrid", null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(2);
         }
@@ -166,7 +166,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("active=true filter — returns only active gyms")
         void findByFilters_ActiveTrue_ReturnsOnlyActiveGyms() {
-            Page<Gym> result = gymRepository.findByFilters(null, true, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, true, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getContent())
                     .hasSize(2)
@@ -176,7 +176,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("active=false filter — returns only inactive gyms")
         void findByFilters_ActiveFalse_ReturnsOnlyInactiveGyms() {
-            Page<Gym> result = gymRepository.findByFilters(null, false, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, false, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getContent())
                     .hasSize(1)
@@ -184,9 +184,43 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         }
 
         @Test
+        @DisplayName("name filter matches gym name — returns matching gym")
+        void findByFilters_NameMatches_ReturnsMatchingGym() {
+            Page<Gym> result = gymRepository.findByFilters(null, null, "FitZone", null, PageRequest.of(0, 10));
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getName()).isEqualTo("FitZone Madrid");
+        }
+
+        @Test
+        @DisplayName("name filter is case-insensitive — lowercase matches mixed-case name")
+        void findByFilters_NameCaseInsensitive_Matches() {
+            Page<Gym> result = gymRepository.findByFilters(null, null, "fitzone", null, PageRequest.of(0, 10));
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).getName()).isEqualTo("FitZone Madrid");
+        }
+
+        @Test
+        @DisplayName("name filter with no match — returns empty page")
+        void findByFilters_NameNoMatch_ReturnsEmpty() {
+            Page<Gym> result = gymRepository.findByFilters(null, null, "ZZZNonExistent", null, PageRequest.of(0, 10));
+
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("name filter does not match address — only name is searched")
+        void findByFilters_NameDoesNotMatchAddress_ReturnsEmpty() {
+            Page<Gym> result = gymRepository.findByFilters(null, null, "Passeig", null, PageRequest.of(0, 10));
+
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
         @DisplayName("q filter matches gym name — returns matching gym")
         void findByFilters_QMatchesName_ReturnsMatchingGym() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, "FitZone", PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, "FitZone", PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getName()).isEqualTo("FitZone Madrid");
@@ -195,7 +229,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("q filter matches address — returns matching gym")
         void findByFilters_QMatchesAddress_ReturnsMatchingGym() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, "Passeig", PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, "Passeig", PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getName()).isEqualTo("CrossFit Barcelona");
@@ -204,7 +238,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("q filter is case-insensitive — lowercase matches mixed-case name")
         void findByFilters_QCaseInsensitive_Matches() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, "fitzone", PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, "fitzone", PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getName()).isEqualTo("FitZone Madrid");
@@ -213,7 +247,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("q filter with no match — returns empty page")
         void findByFilters_QNoMatch_ReturnsEmpty() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, "ZZZNonExistent", PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, "ZZZNonExistent", PageRequest.of(0, 10));
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -221,7 +255,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("combined city and active filters — returns matching gyms")
         void findByFilters_CityAndActiveFilters_ReturnsCombinedResult() {
-            Page<Gym> result = gymRepository.findByFilters("Madrid", true, null, PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters("Madrid", true, null, null, PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getName()).isEqualTo("FitZone Madrid");
@@ -231,7 +265,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("combined city, active and q filters — returns only matching gym")
         void findByFilters_AllFilters_ReturnsOnlyMatch() {
-            Page<Gym> result = gymRepository.findByFilters("Barcelona", true, "CrossFit", PageRequest.of(0, 10));
+            Page<Gym> result = gymRepository.findByFilters("Barcelona", true, null, "CrossFit", PageRequest.of(0, 10));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).getName()).isEqualTo("CrossFit Barcelona");
@@ -240,7 +274,7 @@ class GymRepositoryTest extends AbstractRepositoryTest {
         @Test
         @DisplayName("pagination is respected — page 0 size 1 returns 1 element out of 3")
         void findByFilters_Paginated_ReturnsCorrectPage() {
-            Page<Gym> result = gymRepository.findByFilters(null, null, null, PageRequest.of(0, 1));
+            Page<Gym> result = gymRepository.findByFilters(null, null, null, null, PageRequest.of(0, 1));
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getTotalElements()).isEqualTo(3);
