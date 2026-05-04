@@ -5,6 +5,7 @@ import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.MembershipPlanNotFoundException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
+import com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.common.exception.UserNotFoundException;
@@ -86,8 +87,10 @@ public class SubscriptionService {
         if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
             throw new SubscriptionNotActiveException(subscriptionId);
         }
+        if (sub.getCancelledAt() != null) {
+            throw new SubscriptionCancellationPendingException(subscriptionId);
+        }
 
-        sub.setStatus(SubscriptionStatus.CANCELLED);
         sub.setCancelledAt(Instant.now());
         subscriptionRepository.save(sub);
     }
@@ -96,6 +99,10 @@ public class SubscriptionService {
     public SubscriptionResponse renewSubscription(Long subscriptionId) {
         Subscription sub = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+
+        if (sub.getCancelledAt() != null) {
+            throw new SubscriptionCancellationPendingException(subscriptionId);
+        }
 
         sub.setRenewalDate(sub.getRenewalDate().plusMonths(sub.getPlan().getDurationMonths()));
         sub.setClassesUsedThisMonth(0);
@@ -129,6 +136,8 @@ public class SubscriptionService {
         Integer remaining = classesPerMonth != null
                 ? classesPerMonth - sub.getClassesUsedThisMonth()
                 : null;
+        boolean pendingCancellation = sub.getCancelledAt() != null
+                && sub.getStatus() == SubscriptionStatus.ACTIVE;
         return new SubscriptionResponse(
                 sub.getId(),
                 planSummary,
@@ -138,6 +147,7 @@ public class SubscriptionService {
                 sub.getRenewalDate(),
                 sub.getClassesUsedThisMonth(),
                 remaining,
+                pendingCancellation,
                 sub.getCancelledAt()
         );
     }

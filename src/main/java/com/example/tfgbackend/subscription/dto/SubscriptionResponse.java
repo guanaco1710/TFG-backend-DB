@@ -14,5 +14,6 @@ public record SubscriptionResponse(
         LocalDate renewalDate,
         int classesUsedThisMonth,
         Integer classesRemainingThisMonth,
+        boolean pendingCancellation,
         Instant cancelledAt
 ) {}

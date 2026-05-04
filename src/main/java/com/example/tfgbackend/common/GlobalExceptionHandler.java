@@ -33,6 +33,7 @@ import com.example.tfgbackend.common.exception.SessionNotAttendableException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.SpecialtyNotAllowedException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
+import com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.common.exception.TokenExpiredException;
@@ -180,6 +181,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SubscriptionNotActiveException.class)
     ResponseEntity<Map<String, Object>> handleSubscriptionNotActive(SubscriptionNotActiveException ex, HttpServletRequest req) {
         return error(HttpStatus.CONFLICT, "SubscriptionNotActive", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(SubscriptionCancellationPendingException.class)
+    ResponseEntity<Map<String, Object>> handleSubscriptionCancellationPending(SubscriptionCancellationPendingException ex, HttpServletRequest req) {
+        return error(HttpStatus.CONFLICT, "SubscriptionCancellationPending", ex.getMessage(), req);
     }
 
     @ExceptionHandler(NoActiveSubscriptionException.class)
