@@ -446,6 +446,49 @@ Concrete scheduled occurrences of a class type.
 | `PUT` | `/membership-plans/{id}` | Update a plan | `ADMIN` |
 | `DELETE` | `/membership-plans/{id}` | Deactivate a plan | `ADMIN` |
 
+Plans are **global** — not tied to a specific gym. When subscribing, the chosen gym is provided in the POST /subscriptions body alongside the plan.
+
+### GET /membership-plans — Query params
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `active` | Boolean | Filter by active status (omit to return all) |
+| `page` | int | Page index (0-based, default 0) |
+| `size` | int | Page size (default 20) |
+
+### GET /membership-plans — Response 200
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Basic",
+      "description": "Up to 12 classes per month",
+      "priceMonthly": 29.99,
+      "classesPerMonth": 12,
+      "allowsWaitlist": false,
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Unlimited",
+      "description": "Unlimited classes, waitlist priority",
+      "priceMonthly": 49.99,
+      "classesPerMonth": null,
+      "allowsWaitlist": true,
+      "active": true
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 2,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+`classesPerMonth: null` means unlimited.
+
 ### POST /membership-plans — Request
 ```json
 {
