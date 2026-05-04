@@ -33,9 +33,10 @@ public class GymController {
     public ResponseEntity<PageResponse<GymResponse>> listGyms(
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ResponseEntity.ok(gymService.listGyms(city, active, q, pageable));
+        return ResponseEntity.ok(gymService.listGyms(city, active, name, q, pageable));
     }
 
     @GetMapping("/{id}")

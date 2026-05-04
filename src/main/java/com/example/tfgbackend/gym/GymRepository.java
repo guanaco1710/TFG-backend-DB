@@ -19,6 +19,7 @@ public interface GymRepository extends JpaRepository<Gym, Long> {
             SELECT g FROM Gym g
             WHERE (:city IS NULL OR LOWER(g.city) = LOWER(CAST(:city AS string)))
               AND (:active IS NULL OR g.active = :active)
+              AND (:name IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%')))
               AND (:q IS NULL
                    OR LOWER(g.name) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%'))
                    OR LOWER(g.address) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')))
@@ -26,6 +27,7 @@ public interface GymRepository extends JpaRepository<Gym, Long> {
     Page<Gym> findByFilters(
             @Param("city") String city,
             @Param("active") Boolean active,
+            @Param("name") String name,
             @Param("q") String q,
             Pageable pageable);
 }

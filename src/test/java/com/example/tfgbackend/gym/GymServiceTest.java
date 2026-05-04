@@ -82,102 +82,127 @@ class GymServiceTest {
         @DisplayName("all filters null — passes null values to repository and returns page")
         void listGyms_AllFiltersNull_PassesNullsToRepositoryAndReturnsPage() {
             Page<Gym> page = new PageImpl<>(List.of(gymA, gymB), PageRequest.of(0, 10), 2);
-            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), any(Pageable.class)))
+            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms(null, null, null, PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms(null, null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.content()).hasSize(2);
             assertThat(result.totalElements()).isEqualTo(2);
-            verify(gymRepository).findByFilters(null, null, null, PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters(null, null, null, null, PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("city filter provided — forwarded as-is to repository")
         void listGyms_WithCityFilter_ForwardsCityToRepository() {
             Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
-            when(gymRepository.findByFilters(eq("Madrid"), isNull(), isNull(), any(Pageable.class)))
+            when(gymRepository.findByFilters(eq("Madrid"), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms("Madrid", null, null, PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms("Madrid", null, null, null, PageRequest.of(0, 10));
 
             assertThat(result.content()).hasSize(1);
             assertThat(result.content().get(0).city()).isEqualTo("Madrid");
-            verify(gymRepository).findByFilters("Madrid", null, null, PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters("Madrid", null, null, null, PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("blank city string — normalised to null before forwarding")
         void listGyms_BlankCity_NormalisedToNull() {
             Page<Gym> page = new PageImpl<>(List.of(gymA, gymB), PageRequest.of(0, 10), 2);
-            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), any(Pageable.class)))
+            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            gymService.listGyms("   ", null, null, PageRequest.of(0, 10));
+            gymService.listGyms("   ", null, null, null, PageRequest.of(0, 10));
 
-            verify(gymRepository).findByFilters(null, null, null, PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters(null, null, null, null, PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("active filter provided — forwarded to repository")
         void listGyms_WithActiveFilter_ForwardsActiveToRepository() {
             Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
-            when(gymRepository.findByFilters(isNull(), eq(true), isNull(), any(Pageable.class)))
+            when(gymRepository.findByFilters(isNull(), eq(true), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms(null, true, null, PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms(null, true, null, null, PageRequest.of(0, 10));
 
             assertThat(result.content()).hasSize(1);
-            verify(gymRepository).findByFilters(null, true, null, PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters(null, true, null, null, PageRequest.of(0, 10));
+        }
+
+        @Test
+        @DisplayName("name filter provided — forwarded to repository")
+        void listGyms_WithNameFilter_ForwardsNameToRepository() {
+            Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
+            when(gymRepository.findByFilters(isNull(), isNull(), eq("FitZone"), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            PageResponse<GymResponse> result = gymService.listGyms(null, null, "FitZone", null, PageRequest.of(0, 10));
+
+            assertThat(result.content()).hasSize(1);
+            verify(gymRepository).findByFilters(null, null, "FitZone", null, PageRequest.of(0, 10));
+        }
+
+        @Test
+        @DisplayName("blank name string — normalised to null before forwarding")
+        void listGyms_BlankName_NormalisedToNull() {
+            Page<Gym> page = new PageImpl<>(List.of(gymA, gymB), PageRequest.of(0, 10), 2);
+            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            gymService.listGyms(null, null, "  ", null, PageRequest.of(0, 10));
+
+            verify(gymRepository).findByFilters(null, null, null, null, PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("q filter provided — forwarded to repository")
         void listGyms_WithQFilter_ForwardsQToRepository() {
             Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
-            when(gymRepository.findByFilters(isNull(), isNull(), eq("FitZone"), any(Pageable.class)))
+            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), eq("FitZone"), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms(null, null, "FitZone", PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms(null, null, null, "FitZone", PageRequest.of(0, 10));
 
             assertThat(result.content()).hasSize(1);
-            verify(gymRepository).findByFilters(null, null, "FitZone", PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters(null, null, null, "FitZone", PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("blank q string — normalised to null before forwarding")
         void listGyms_BlankQ_NormalisedToNull() {
             Page<Gym> page = new PageImpl<>(List.of(gymA, gymB), PageRequest.of(0, 10), 2);
-            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), any(Pageable.class)))
+            when(gymRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            gymService.listGyms(null, null, "  ", PageRequest.of(0, 10));
+            gymService.listGyms(null, null, null, "  ", PageRequest.of(0, 10));
 
-            verify(gymRepository).findByFilters(null, null, null, PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters(null, null, null, null, PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("all filters set — all forwarded to repository after normalisation")
         void listGyms_AllFiltersSet_AllForwardedToRepository() {
             Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
-            when(gymRepository.findByFilters(eq("Madrid"), eq(true), eq("FitZone"), any(Pageable.class)))
+            when(gymRepository.findByFilters(eq("Madrid"), eq(true), eq("FitZone"), eq("Central"), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms("Madrid", true, "FitZone", PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms("Madrid", true, "FitZone", "Central", PageRequest.of(0, 10));
 
             assertThat(result.content()).hasSize(1);
             assertThat(result.page()).isZero();
             assertThat(result.hasMore()).isFalse();
-            verify(gymRepository).findByFilters("Madrid", true, "FitZone", PageRequest.of(0, 10));
+            verify(gymRepository).findByFilters("Madrid", true, "FitZone", "Central", PageRequest.of(0, 10));
         }
 
         @Test
         @DisplayName("response fields are correctly mapped from entity")
         void listGyms_ResponseFieldsMappedFromEntity() {
             Page<Gym> page = new PageImpl<>(List.of(gymA), PageRequest.of(0, 10), 1);
-            when(gymRepository.findByFilters(any(), any(), any(), any())).thenReturn(page);
+            when(gymRepository.findByFilters(any(), any(), any(), any(), any())).thenReturn(page);
 
-            PageResponse<GymResponse> result = gymService.listGyms(null, null, null, PageRequest.of(0, 10));
+            PageResponse<GymResponse> result = gymService.listGyms(null, null, null, null, PageRequest.of(0, 10));
 
             GymResponse resp = result.content().get(0);
             assertThat(resp.id()).isEqualTo(1L);
