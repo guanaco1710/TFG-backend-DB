@@ -392,33 +392,84 @@ Returns a flat `List` (no pagination). Same object shape as content items above.
   "id": 42,
   "classSession": {
     "id": 1,
-    "classType": { "id": 1, "name": "Spinning 45min" },
-    "startTime": "2024-06-01T09:00:00"
+    "classTypeName": "Spinning 45min",
+    "startTime": "2024-06-01T09:00:00Z",
+    "gymName": "Downtown Gym"
   },
   "status": "CONFIRMED",
-  "waitlistPosition": null,
   "bookedAt": "2024-05-20T10:00:00Z"
 }
-// If session is full → status: "WAITLISTED", waitlistPosition: 3
 ```
 
-### PATCH /bookings/{id}/cancel — Response 200
+`startTime` is always ISO-8601 with UTC offset (`Z`).  
+If the session is full the booking is not created — a 409 `ClassFull` is returned instead (join the waitlist via `POST /class-sessions/{id}/waitlist`).
+
+### POST /bookings — Error responses
+
+| Status | `error` | Condition |
+|--------|---------|-----------|
+| 404 | `SessionNotFound` | `classSessionId` does not exist |
+| 409 | `SessionNotBookable` | Session is not in `SCHEDULED` state |
+| 409 | `AlreadyBooked` | User already has an active booking for this session |
+| 409 | `ClassFull` | No seats remaining |
+| 409 | `MonthlyClassLimitReached` | User's subscription class quota exhausted |
+| 404 | `NoActiveSubscription` | User has no active subscription |
+
+### POST /bookings/{id}/cancel — Response 200
+
+Returns the full updated booking object (same shape as the 201 response above, with `status: "CANCELLED"`).
+
 ```json
 {
   "id": 42,
+  "classSession": {
+    "id": 1,
+    "classTypeName": "Spinning 45min",
+    "startTime": "2024-06-01T09:00:00Z",
+    "gymName": "Downtown Gym"
+  },
   "status": "CANCELLED",
-  "cancelledAt": "2024-05-21T08:00:00Z"
+  "bookedAt": "2024-05-20T10:00:00Z"
 }
 ```
 
+| Status | `error` | Condition |
+|--------|---------|-----------|
+| 404 | `BookingNotFound` | Booking does not exist or belongs to another user |
+| 409 | `BookingAlreadyCancelled` | Booking is already cancelled |
+
 ### GET /bookings/me — Query params
-| Param | Type | Description |
-|-------|------|-------------|
-| `status` | `CONFIRMED\|WAITLISTED\|CANCELLED\|ATTENDED\|NO_SHOW` | Filter by status |
-| `from` | ISO date | |
-| `to` | ISO date | |
-| `page` | int | |
-| `size` | int | |
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `status` | `CONFIRMED\|WAITLISTED\|CANCELLED\|ATTENDED\|NO_SHOW` | — | Filter by status |
+| `from` | `yyyy-MM-dd` | — | Filter sessions starting on or after this date (inclusive) |
+| `to` | `yyyy-MM-dd` | — | Filter sessions starting before or on this date (inclusive) |
+| `page` | int | 0 | |
+| `size` | int | 20 | |
+
+### GET /bookings/me — Response 200
+```json
+{
+  "content": [
+    {
+      "id": 42,
+      "classSession": {
+        "id": 1,
+        "classTypeName": "Spinning 45min",
+        "startTime": "2024-06-01T09:00:00Z",
+        "gymName": "Downtown Gym"
+      },
+      "status": "CONFIRMED",
+      "bookedAt": "2024-05-20T10:00:00Z"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
 
 ### GET /bookings — Query params (admin)
 | Param | Type | Description |
@@ -825,7 +876,8 @@ Notifications are created automatically by the backend on booking confirmed/canc
   "page": 0,
   "size": 20,
   "totalElements": 5,
-  "totalPages": 1
+  "totalPages": 1,
+  "hasMore": false
 }
 ```
 

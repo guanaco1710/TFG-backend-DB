@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /** User's booking history filtered by status. */
     Page<Booking> findByUserIdAndStatus(Long userId, BookingStatus status, Pageable pageable);
+
+    /** User's booking history with optional status + session date-range filters. */
+    @Query("""
+            SELECT b FROM Booking b
+             WHERE b.user.id = :userId
+               AND (:status IS NULL OR b.status = :status)
+               AND (:from   IS NULL OR b.session.startTime >= :from)
+               AND (:to     IS NULL OR b.session.startTime <  :to)
+             ORDER BY b.bookedAt DESC
+            """)
+    Page<Booking> findByUserFiltered(
+            @Param("userId") Long userId,
+            @Param("status") BookingStatus status,
+            @Param("from")   OffsetDateTime from,
+            @Param("to")     OffsetDateTime to,
+            Pageable pageable);
 
     long countByUserId(Long userId);
 

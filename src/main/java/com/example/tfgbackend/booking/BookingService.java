@@ -34,6 +34,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,7 +100,7 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelBooking(Long bookingId, Long requestingUserId, Boolean isAdmin) {
+    public BookingResponse cancelBooking(Long bookingId, Long requestingUserId, Boolean isAdmin) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
@@ -114,7 +117,7 @@ public class BookingService {
         notificationService.createBookingCancelled(booking.getUser().getId(), booking.getSession());
 
         // Refund the class credit if the session hasn't started yet
-        if (booking.getSession().getStartTime().isAfter(java.time.OffsetDateTime.now())) {
+        if (booking.getSession().getStartTime().isAfter(OffsetDateTime.now())) {
             subscriptionRepository.findByUserIdAndStatus(booking.getUser().getId(), SubscriptionStatus.ACTIVE)
                     .ifPresent(s -> s.setClassesUsedThisMonth(Math.max(0, s.getClassesUsedThisMonth() - 1)));
         }
@@ -133,15 +136,15 @@ public class BookingService {
             bookingRepository.save(promoted);
             waitlistRepository.delete(first);
         }
+
+        return toBookingResponse(booking);
     }
 
-    public PageResponse<BookingResponse> getMyBookings(Long userId, BookingStatus status, Pageable pageable) {
-        Page<Booking> page;
-        if (status == null) {
-            page = bookingRepository.findByUserIdOrderByBookedAtDesc(userId, pageable);
-        } else {
-            page = bookingRepository.findByUserIdAndStatus(userId, status, pageable);
-        }
+    public PageResponse<BookingResponse> getMyBookings(
+            Long userId, BookingStatus status, LocalDate from, LocalDate to, Pageable pageable) {
+        OffsetDateTime fromDt = from != null ? from.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime() : null;
+        OffsetDateTime toDt   = to   != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime() : null;
+        Page<Booking> page = bookingRepository.findByUserFiltered(userId, status, fromDt, toDt, pageable);
         return PageResponse.of(page.map(this::toBookingResponse));
     }
 

@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -492,44 +493,56 @@ class BookingServiceTest {
             Booking b2 = buildBooking(2L, alice, scheduledSession, BookingStatus.CANCELLED);
             Page<Booking> page = new PageImpl<>(List.of(b1, b2), PageRequest.of(0, 10), 2);
 
-            when(bookingRepository.findByUserIdOrderByBookedAtDesc(eq(1L), any(Pageable.class)))
+            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
-            PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, PageRequest.of(0, 10));
+            PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, null, null, PageRequest.of(0, 10));
 
             assertThat(response.content()).hasSize(2);
             assertThat(response.totalElements()).isEqualTo(2);
-            verify(bookingRepository).findByUserIdOrderByBookedAtDesc(eq(1L), any(Pageable.class));
-            verify(bookingRepository, never()).findByUserIdAndStatus(any(), any(), any());
+            verify(bookingRepository).findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("status filter delegates to findByUserIdAndStatus")
+        @DisplayName("status filter is passed to findByUserFiltered")
         void getMyBookings_WithStatusFilter_DelegatesToFilteredQuery() {
             Booking b1 = buildBooking(1L, alice, scheduledSession, BookingStatus.CONFIRMED);
             Page<Booking> page = new PageImpl<>(List.of(b1), PageRequest.of(0, 10), 1);
 
-            when(bookingRepository.findByUserIdAndStatus(eq(1L), eq(BookingStatus.CONFIRMED), any(Pageable.class)))
+            when(bookingRepository.findByUserFiltered(eq(1L), eq(BookingStatus.CONFIRMED), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
             PageResponse<BookingResponse> response = bookingService.getMyBookings(
-                    1L, BookingStatus.CONFIRMED, PageRequest.of(0, 10));
+                    1L, BookingStatus.CONFIRMED, null, null, PageRequest.of(0, 10));
 
             assertThat(response.content()).hasSize(1);
             assertThat(response.content().get(0).status()).isEqualTo(BookingStatus.CONFIRMED);
-            verify(bookingRepository).findByUserIdAndStatus(
-                    eq(1L), eq(BookingStatus.CONFIRMED), any(Pageable.class));
-            verify(bookingRepository, never()).findByUserIdOrderByBookedAtDesc(any(), any());
+            verify(bookingRepository).findByUserFiltered(eq(1L), eq(BookingStatus.CONFIRMED), isNull(), isNull(), any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("date range filter converts LocalDate to OffsetDateTime bounds")
+        void getMyBookings_WithDateRange_PassesBoundsToRepository() {
+            java.time.LocalDate from = java.time.LocalDate.of(2025, 6, 1);
+            java.time.LocalDate to   = java.time.LocalDate.of(2025, 6, 7);
+            Page<Booking> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+
+            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), any(), any(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            bookingService.getMyBookings(1L, null, from, to, PageRequest.of(0, 10));
+
+            verify(bookingRepository).findByUserFiltered(eq(1L), isNull(), any(), any(), any(Pageable.class));
         }
 
         @Test
         @DisplayName("empty result returns page with no content")
         void getMyBookings_NoneFound_ReturnsEmptyPage() {
             Page<Booking> empty = Page.empty(PageRequest.of(0, 10));
-            when(bookingRepository.findByUserIdOrderByBookedAtDesc(eq(1L), any(Pageable.class)))
+            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(empty);
 
-            PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, PageRequest.of(0, 10));
+            PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, null, null, PageRequest.of(0, 10));
 
             assertThat(response.content()).isEmpty();
             assertThat(response.totalElements()).isZero();

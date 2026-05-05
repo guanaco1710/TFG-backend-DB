@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -44,20 +45,21 @@ public class BookingController {
     }
 
     @PostMapping(BOOKINGS_BASE + "/{id}/cancel")
-    public ResponseEntity<Void> cancelBooking(
+    public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id,
             @AuthenticationPrincipal AuthenticatedUser principal) {
         boolean isAdmin = principal.role() == UserRole.ADMIN;
-        bookingService.cancelBooking(id, principal.userId(), isAdmin);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(bookingService.cancelBooking(id, principal.userId(), isAdmin));
     }
 
     @GetMapping(BOOKINGS_BASE + "/me")
     public ResponseEntity<PageResponse<BookingResponse>> getMyBookings(
             @RequestParam(required = false) BookingStatus status,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to,
             Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        return ResponseEntity.ok(bookingService.getMyBookings(principal.userId(), status, pageable));
+        return ResponseEntity.ok(bookingService.getMyBookings(principal.userId(), status, from, to, pageable));
     }
 
     @GetMapping(BOOKINGS_BASE + "/me/waitlist")
