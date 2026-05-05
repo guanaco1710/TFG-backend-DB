@@ -6,6 +6,7 @@ import com.example.tfgbackend.enums.SubscriptionStatus;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.subscription.dto.CreateSubscriptionRequest;
 import com.example.tfgbackend.subscription.dto.SubscriptionResponse;
+import com.example.tfgbackend.subscription.dto.UpgradeSubscriptionRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/subscriptions")
@@ -51,11 +53,20 @@ public class SubscriptionController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<SubscriptionResponse> getMyActiveSubscription(
+    public ResponseEntity<List<SubscriptionResponse>> getMySubscriptions(
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        return subscriptionService.getMyActiveSubscription(principal.userId())
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.noContent().build());
+        return ResponseEntity.ok(subscriptionService.getMySubscriptions(principal.userId()));
+    }
+
+    @PostMapping("/{id}/upgrade")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+    public ResponseEntity<SubscriptionResponse> upgradeSubscription(
+            @PathVariable Long id,
+            @Valid @RequestBody UpgradeSubscriptionRequest request,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        boolean isAdmin = principal.role() == UserRole.ADMIN;
+        return ResponseEntity.ok(subscriptionService.upgradeSubscription(
+                id, request.newMembershipPlanId(), principal.userId(), isAdmin));
     }
 
     @PostMapping("/{id}/cancel")

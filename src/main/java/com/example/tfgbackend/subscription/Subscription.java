@@ -67,4 +67,8 @@ public class Subscription extends BaseEntity {
 
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pending_plan_id")
+    private MembershipPlan pendingPlan;
 }

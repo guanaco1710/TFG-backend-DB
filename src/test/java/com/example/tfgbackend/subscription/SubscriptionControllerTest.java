@@ -7,6 +7,7 @@ import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.common.exception.GymNotFoundException;
 import com.example.tfgbackend.common.exception.MembershipPlanInactiveException;
 import com.example.tfgbackend.common.exception.SubscriptionAlreadyActiveException;
+import com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException;
 import com.example.tfgbackend.common.exception.SubscriptionNotActiveException;
 import com.example.tfgbackend.common.exception.SubscriptionNotFoundException;
 import com.example.tfgbackend.config.SecurityConfig;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -92,7 +94,7 @@ class SubscriptionControllerTest {
     private SubscriptionResponse subscriptionResponse(Long id, SubscriptionStatus status) {
         MembershipPlanSummary planSummary = new MembershipPlanSummary(10L, "Gold", new BigDecimal("49.99"));
         return new SubscriptionResponse(id, planSummary, gymSummary(), status,
-                LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), 3, 17, null);
+                LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), 3, 17, false, null, null);
     }
 
     private PageResponse<SubscriptionResponse> pageResponse(SubscriptionResponse... items) {
@@ -288,46 +290,48 @@ class SubscriptionControllerTest {
     }
 
     // ---------------------------------------------------------------------------
-    // GET /api/v1/subscriptions/me — getMyActiveSubscription
+    // GET /api/v1/subscriptions/me — getMySubscriptions
     // ---------------------------------------------------------------------------
 
     @Nested
-    @DisplayName("GET /api/v1/subscriptions/me — getMyActiveSubscription")
-    class GetMyActiveSubscription {
+    @DisplayName("GET /api/v1/subscriptions/me — getMySubscriptions")
+    class GetMySubscriptions {
 
         @Test
-        @DisplayName("customer retrieves own active subscription — returns 200 with gym object")
-        void getMyActiveSubscription_HasActiveSubscription_Returns200WithGym() throws Exception {
+        @DisplayName("customer retrieves own subscriptions — returns 200 with array")
+        void getMySubscriptions_HasSubscription_Returns200WithArray() throws Exception {
             SubscriptionResponse response = subscriptionResponse(100L, SubscriptionStatus.ACTIVE);
-            when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(Optional.of(response));
+            when(subscriptionService.getMySubscriptions(1L)).thenReturn(List.of(response));
 
             mvc.perform(get(BASE + "/me")
                             .with(authentication(customerAuth(1L))))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(100))
-                    .andExpect(jsonPath("$.status").value("ACTIVE"))
-                    .andExpect(jsonPath("$.plan.name").value("Gold"))
-                    .andExpect(jsonPath("$.classesUsedThisMonth").value(3))
-                    .andExpect(jsonPath("$.classesRemainingThisMonth").value(17))
-                    .andExpect(jsonPath("$.gym.id").value(5))
-                    .andExpect(jsonPath("$.gym.name").value("FitZone Madrid"))
-                    .andExpect(jsonPath("$.gym.address").value("Calle Mayor 1"))
-                    .andExpect(jsonPath("$.gym.city").value("Madrid"));
+                    .andExpect(jsonPath("$[0].id").value(100))
+                    .andExpect(jsonPath("$[0].status").value("ACTIVE"))
+                    .andExpect(jsonPath("$[0].plan.name").value("Gold"))
+                    .andExpect(jsonPath("$[0].classesUsedThisMonth").value(3))
+                    .andExpect(jsonPath("$[0].classesRemainingThisMonth").value(17))
+                    .andExpect(jsonPath("$[0].gym.id").value(5))
+                    .andExpect(jsonPath("$[0].gym.name").value("FitZone Madrid"))
+                    .andExpect(jsonPath("$[0].gym.address").value("Calle Mayor 1"))
+                    .andExpect(jsonPath("$[0].gym.city").value("Madrid"));
         }
 
         @Test
-        @DisplayName("no active subscription — returns 204 No Content")
-        void getMyActiveSubscription_NoActiveSubscription_Returns204() throws Exception {
-            when(subscriptionService.getMyActiveSubscription(1L)).thenReturn(Optional.empty());
+        @DisplayName("no subscriptions — returns 200 with empty array")
+        void getMySubscriptions_NoSubscriptions_Returns200EmptyArray() throws Exception {
+            when(subscriptionService.getMySubscriptions(1L)).thenReturn(List.of());
 
             mvc.perform(get(BASE + "/me")
                             .with(authentication(customerAuth(1L))))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$").isEmpty());
         }
 
         @Test
         @DisplayName("unauthenticated request — returns 401")
-        void getMyActiveSubscription_Unauthenticated_Returns401() throws Exception {
+        void getMySubscriptions_Unauthenticated_Returns401() throws Exception {
             mvc.perform(get(BASE + "/me"))
                     .andExpect(status().isUnauthorized());
         }
@@ -382,9 +386,112 @@ class SubscriptionControllerTest {
         }
 
         @Test
+        @DisplayName("cancellation already pending — returns 409 with SubscriptionCancellationPending error")
+        void cancelSubscription_AlreadyPendingCancellation_Returns409() throws Exception {
+            doThrow(new SubscriptionCancellationPendingException(100L))
+                    .when(subscriptionService).cancelSubscription(eq(100L), any(), any());
+
+            mvc.perform(post(BASE + "/100/cancel")
+                            .with(authentication(customerAuth(1L))))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("SubscriptionCancellationPending"));
+        }
+
+        @Test
         @DisplayName("unauthenticated request — returns 401")
         void cancelSubscription_Unauthenticated_Returns401() throws Exception {
             mvc.perform(post(BASE + "/100/cancel"))
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // POST /api/v1/subscriptions/{id}/upgrade — upgradeSubscription
+    // ---------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("POST /api/v1/subscriptions/{id}/upgrade — upgradeSubscription")
+    class UpgradeSubscription {
+
+        @Test
+        @DisplayName("customer upgrades own subscription — returns 200 with pendingPlan")
+        void upgradeSubscription_CustomerOwnSub_Returns200WithPendingPlan() throws Exception {
+            MembershipPlanSummary premiumSummary = new MembershipPlanSummary(20L, "Premium", new java.math.BigDecimal("79.99"));
+            SubscriptionResponse response = new SubscriptionResponse(
+                    100L, new MembershipPlanSummary(10L, "Gold", new java.math.BigDecimal("49.99")),
+                    gymSummary(), SubscriptionStatus.ACTIVE,
+                    LocalDate.now().minusDays(5), LocalDate.now().plusDays(25),
+                    3, 17, false, null, premiumSummary);
+            when(subscriptionService.upgradeSubscription(eq(100L), eq(20L), eq(1L), eq(false))).thenReturn(response);
+
+            mvc.perform(post(BASE + "/100/upgrade")
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": 20}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(100))
+                    .andExpect(jsonPath("$.pendingPlan.id").value(20))
+                    .andExpect(jsonPath("$.pendingPlan.name").value("Premium"));
+        }
+
+        @Test
+        @DisplayName("admin upgrades any subscription — returns 200")
+        void upgradeSubscription_Admin_Returns200() throws Exception {
+            SubscriptionResponse response = subscriptionResponse(100L, SubscriptionStatus.ACTIVE);
+            when(subscriptionService.upgradeSubscription(eq(100L), eq(20L), eq(99L), eq(true))).thenReturn(response);
+
+            mvc.perform(post(BASE + "/100/upgrade")
+                            .with(authentication(adminAuth(99L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": 20}"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("missing newMembershipPlanId fails validation — returns 400")
+        void upgradeSubscription_MissingPlanId_Returns400() throws Exception {
+            mvc.perform(post(BASE + "/100/upgrade")
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": null}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("ValidationFailed"));
+        }
+
+        @Test
+        @DisplayName("subscription not found — returns 404")
+        void upgradeSubscription_SubscriptionNotFound_Returns404() throws Exception {
+            when(subscriptionService.upgradeSubscription(any(), any(), any(), anyBoolean()))
+                    .thenThrow(new SubscriptionNotFoundException(999L));
+
+            mvc.perform(post(BASE + "/999/upgrade")
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": 20}"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error").value("SubscriptionNotFound"));
+        }
+
+        @Test
+        @DisplayName("subscription not active — returns 409")
+        void upgradeSubscription_SubscriptionNotActive_Returns409() throws Exception {
+            when(subscriptionService.upgradeSubscription(any(), any(), any(), anyBoolean()))
+                    .thenThrow(new SubscriptionNotActiveException(101L));
+
+            mvc.perform(post(BASE + "/101/upgrade")
+                            .with(authentication(customerAuth(1L)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": 20}"))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("SubscriptionNotActive"));
+        }
+
+        @Test
+        @DisplayName("unauthenticated request — returns 401")
+        void upgradeSubscription_Unauthenticated_Returns401() throws Exception {
+            mvc.perform(post(BASE + "/100/upgrade")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"newMembershipPlanId\": 20}"))
                     .andExpect(status().isUnauthorized());
         }
     }

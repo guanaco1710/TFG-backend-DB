@@ -122,7 +122,7 @@ class SubscriptionServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
+            when(subscriptionRepository.findByUserIdAndGymIdAndStatus(1L, 5L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.empty());
             when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(inv -> {
                 Subscription saved = inv.getArgument(0);
@@ -208,18 +208,43 @@ class SubscriptionServiceTest {
         }
 
         @Test
-        @DisplayName("user already has ACTIVE subscription throws SubscriptionAlreadyActiveException")
+        @DisplayName("user already has ACTIVE subscription for same gym throws SubscriptionAlreadyActiveException")
         void subscribe_AlreadyActiveSubscription_ThrowsSubscriptionAlreadyActiveException() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
+            when(subscriptionRepository.findByUserIdAndGymIdAndStatus(1L, 5L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.of(activeSubscription));
 
             assertThatThrownBy(() -> subscriptionService.subscribe(1L, 10L, 5L))
                     .isInstanceOf(SubscriptionAlreadyActiveException.class);
 
             verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("user has ACTIVE subscription for different gym — second subscription is allowed")
+        void subscribe_UserHasActiveSubForDifferentGym_Succeeds() {
+            Gym gym2 = Gym.builder()
+                    .name("FitZone Barcelona").address("Passeig de Gràcia 1").city("Barcelona")
+                    .phone("+34 933 000 001").openingHours("07:00-22:00").active(true).build();
+            setId(gym2, 6L);
+
+            when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
+            when(membershipPlanRepository.findById(10L)).thenReturn(Optional.of(activePlan));
+            when(gymRepository.findById(6L)).thenReturn(Optional.of(gym2));
+            when(subscriptionRepository.findByUserIdAndGymIdAndStatus(1L, 6L, SubscriptionStatus.ACTIVE))
+                    .thenReturn(Optional.empty());
+            when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(inv -> {
+                Subscription saved = inv.getArgument(0);
+                setId(saved, 202L);
+                return saved;
+            });
+
+            SubscriptionResponse response = subscriptionService.subscribe(1L, 10L, 6L);
+
+            assertThat(response.id()).isEqualTo(202L);
+            assertThat(response.gym().id()).isEqualTo(6L);
         }
 
         @Test
@@ -233,7 +258,7 @@ class SubscriptionServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(customer));
             when(membershipPlanRepository.findById(12L)).thenReturn(Optional.of(quarterlyPlan));
             when(gymRepository.findById(5L)).thenReturn(Optional.of(gym));
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
+            when(subscriptionRepository.findByUserIdAndGymIdAndStatus(1L, 5L, SubscriptionStatus.ACTIVE))
                     .thenReturn(Optional.empty());
             when(subscriptionRepository.save(any())).thenAnswer(inv -> {
                 Subscription s = inv.getArgument(0);
@@ -248,28 +273,28 @@ class SubscriptionServiceTest {
     }
 
     // ---------------------------------------------------------------------------
-    // getMyActiveSubscription
+    // getMySubscriptions
     // ---------------------------------------------------------------------------
 
     @Nested
-    @DisplayName("getMyActiveSubscription")
-    class GetMyActiveSubscription {
+    @DisplayName("getMySubscriptions")
+    class GetMySubscriptions {
 
         @Test
-        @DisplayName("happy path: returns response including gym info")
-        void getMyActiveSubscription_HappyPath_ReturnsResponseWithGym() {
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
-                    .thenReturn(Optional.of(activeSubscription));
+        @DisplayName("happy path: returns list with response including gym info")
+        void getMySubscriptions_HappyPath_ReturnsListWithGym() {
+            when(subscriptionRepository.findByUserId(1L))
+                    .thenReturn(List.of(activeSubscription));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
+            List<SubscriptionResponse> result = subscriptionService.getMySubscriptions(1L);
 
+            assertThat(result).hasSize(1);
+            SubscriptionResponse response = result.get(0);
             assertThat(response.id()).isEqualTo(100L);
             assertThat(response.status()).isEqualTo(SubscriptionStatus.ACTIVE);
             assertThat(response.classesUsedThisMonth()).isEqualTo(3);
             assertThat(response.plan().id()).isEqualTo(10L);
             assertThat(response.plan().name()).isEqualTo("Gold");
-
-            // gym summary must be populated
             assertThat(response.gym()).isNotNull();
             assertThat(response.gym().id()).isEqualTo(5L);
             assertThat(response.gym().name()).isEqualTo("FitZone Madrid");
@@ -279,19 +304,18 @@ class SubscriptionServiceTest {
 
         @Test
         @DisplayName("classesRemainingThisMonth is computed correctly when plan has a limit")
-        void getMyActiveSubscription_PlanHasClassLimit_ComputesRemainingCorrectly() {
-            // activePlan has classesPerMonth=20, activeSubscription has classesUsedThisMonth=3
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
-                    .thenReturn(Optional.of(activeSubscription));
+        void getMySubscriptions_PlanHasClassLimit_ComputesRemainingCorrectly() {
+            when(subscriptionRepository.findByUserId(1L))
+                    .thenReturn(List.of(activeSubscription));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
 
             assertThat(response.classesRemainingThisMonth()).isEqualTo(17); // 20 - 3
         }
 
         @Test
         @DisplayName("classesRemainingThisMonth is null when plan has no class limit (unlimited)")
-        void getMyActiveSubscription_UnlimitedPlan_ReturnsNullClassesRemaining() {
+        void getMySubscriptions_UnlimitedPlan_ReturnsNullClassesRemaining() {
             MembershipPlan unlimitedPlan = MembershipPlan.builder()
                     .name("Unlimited").priceMonthly(new BigDecimal("99.99"))
                     .classesPerMonth(null).allowsWaitlist(true).active(true).durationMonths(1).build();
@@ -304,21 +328,44 @@ class SubscriptionServiceTest {
                     .classesUsedThisMonth(5).build();
             setId(unlimitedSub, 102L);
 
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
-                    .thenReturn(Optional.of(unlimitedSub));
+            when(subscriptionRepository.findByUserId(1L))
+                    .thenReturn(List.of(unlimitedSub));
 
-            SubscriptionResponse response = subscriptionService.getMyActiveSubscription(1L).orElseThrow();
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
 
             assertThat(response.classesRemainingThisMonth()).isNull();
         }
 
         @Test
-        @DisplayName("no active subscription returns Optional.empty()")
-        void getMyActiveSubscription_NoActiveSubscription_ReturnsEmpty() {
-            when(subscriptionRepository.findByUserIdAndStatus(1L, SubscriptionStatus.ACTIVE))
-                    .thenReturn(Optional.empty());
+        @DisplayName("no subscriptions returns empty list")
+        void getMySubscriptions_NoSubscriptions_ReturnsEmptyList() {
+            when(subscriptionRepository.findByUserId(1L)).thenReturn(List.of());
 
-            assertThat(subscriptionService.getMyActiveSubscription(1L)).isEmpty();
+            assertThat(subscriptionService.getMySubscriptions(1L)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("subscription with cancelledAt set and status ACTIVE — pendingCancellation is true")
+        void getMySubscriptions_CancellationPending_ReturnsPendingCancellationTrue() {
+            activeSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findByUserId(1L)).thenReturn(List.of(activeSubscription));
+
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
+
+            assertThat(response.pendingCancellation()).isTrue();
+            assertThat(response.cancelledAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("subscription with cancelledAt set and status CANCELLED — pendingCancellation is false")
+        void getMySubscriptions_AlreadyCancelledWithCancelledAt_ReturnsPendingCancellationFalse() {
+            cancelledSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findByUserId(1L)).thenReturn(List.of(cancelledSubscription));
+
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
+
+            assertThat(response.pendingCancellation()).isFalse();
+            assertThat(response.cancelledAt()).isNotNull();
         }
     }
 
@@ -331,8 +378,8 @@ class SubscriptionServiceTest {
     class CancelSubscription {
 
         @Test
-        @DisplayName("happy path: owner cancels own active subscription — sets status=CANCELLED")
-        void cancelSubscription_OwnerCancelsActiveSubscription_SetsStatusCancelled() {
+        @DisplayName("happy path: owner cancels own active subscription — sets cancelledAt (pending cancellation)")
+        void cancelSubscription_OwnerCancelsActiveSubscription_SetsCancelledAt() {
             when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -340,11 +387,12 @@ class SubscriptionServiceTest {
 
             ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
             verify(subscriptionRepository).save(captor.capture());
-            assertThat(captor.getValue().getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
+            assertThat(captor.getValue().getCancelledAt()).isNotNull();
+            assertThat(captor.getValue().getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
         }
 
         @Test
-        @DisplayName("admin cancels another user's subscription — succeeds")
+        @DisplayName("admin cancels another user's subscription — succeeds, sets cancelledAt")
         void cancelSubscription_AdminCancelsAnySubscription_Succeeds() {
             when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -354,7 +402,7 @@ class SubscriptionServiceTest {
 
             ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
             verify(subscriptionRepository).save(captor.capture());
-            assertThat(captor.getValue().getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
+            assertThat(captor.getValue().getCancelledAt()).isNotNull();
         }
 
         @Test
@@ -409,6 +457,18 @@ class SubscriptionServiceTest {
 
             verify(subscriptionRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("cancellation already pending (cancelledAt set) throws SubscriptionCancellationPendingException")
+        void cancelSubscription_AlreadyPendingCancellation_ThrowsSubscriptionCancellationPendingException() {
+            activeSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+
+            assertThatThrownBy(() -> subscriptionService.cancelSubscription(100L, 1L, false))
+                    .isInstanceOf(com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -448,6 +508,40 @@ class SubscriptionServiceTest {
                     .isInstanceOf(SubscriptionNotFoundException.class);
 
             verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("subscription has cancelledAt set — throws SubscriptionCancellationPendingException")
+        void renewSubscription_CancellationPending_ThrowsSubscriptionCancellationPendingException() {
+            activeSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+
+            assertThatThrownBy(() -> subscriptionService.renewSubscription(100L))
+                    .isInstanceOf(com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("subscription has pendingPlan — applies it and clears pendingPlan on renewal")
+        void renewSubscription_WithPendingPlan_AppliesPendingPlanAndClearsIt() {
+            MembershipPlan upgradedPlan = MembershipPlan.builder()
+                    .name("Platinum").priceMonthly(new java.math.BigDecimal("99.99"))
+                    .classesPerMonth(null).allowsWaitlist(true).active(true).durationMonths(1).build();
+            setId(upgradedPlan, 30L);
+            activeSubscription.setPendingPlan(upgradedPlan);
+
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionResponse response = subscriptionService.renewSubscription(100L);
+
+            ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+            verify(subscriptionRepository).save(captor.capture());
+            assertThat(captor.getValue().getPlan()).isEqualTo(upgradedPlan);
+            assertThat(captor.getValue().getPendingPlan()).isNull();
+            assertThat(response.plan().id()).isEqualTo(30L);
+            assertThat(response.pendingPlan()).isNull();
         }
     }
 
@@ -519,6 +613,112 @@ class SubscriptionServiceTest {
 
             assertThat(result.totalElements()).isEqualTo(1);
             assertThat(result.content().get(0).status()).isEqualTo(SubscriptionStatus.ACTIVE);
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // upgradeSubscription
+    // ---------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("upgradeSubscription")
+    class UpgradeSubscriptionTests {
+
+        private MembershipPlan premiumPlan;
+
+        @BeforeEach
+        void setUpPremium() {
+            premiumPlan = MembershipPlan.builder()
+                    .name("Premium").description("Premium plan").priceMonthly(new java.math.BigDecimal("79.99"))
+                    .classesPerMonth(null).allowsWaitlist(true).active(true).durationMonths(1).build();
+            setId(premiumPlan, 20L);
+        }
+
+        @Test
+        @DisplayName("happy path: owner sets pendingPlan — response contains pendingPlan")
+        void upgradeSubscription_OwnerUpgradesActive_SetsPendingPlan() {
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+            when(membershipPlanRepository.findById(20L)).thenReturn(Optional.of(premiumPlan));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionResponse response = subscriptionService.upgradeSubscription(100L, 20L, 1L, false);
+
+            assertThat(response.pendingPlan()).isNotNull();
+            assertThat(response.pendingPlan().id()).isEqualTo(20L);
+            assertThat(response.pendingPlan().name()).isEqualTo("Premium");
+            ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+            verify(subscriptionRepository).save(captor.capture());
+            assertThat(captor.getValue().getPendingPlan()).isEqualTo(premiumPlan);
+        }
+
+        @Test
+        @DisplayName("admin upgrades any subscription — succeeds")
+        void upgradeSubscription_AdminUpgradesAny_Succeeds() {
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+            when(membershipPlanRepository.findById(20L)).thenReturn(Optional.of(premiumPlan));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionResponse response = subscriptionService.upgradeSubscription(100L, 20L, 99L, true);
+
+            assertThat(response.pendingPlan()).isNotNull();
+            assertThat(response.pendingPlan().id()).isEqualTo(20L);
+        }
+
+        @Test
+        @DisplayName("non-admin upgrading another user's subscription throws AccessDeniedException")
+        void upgradeSubscription_NonAdminOtherUser_ThrowsAccessDeniedException() {
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+
+            assertThatThrownBy(() -> subscriptionService.upgradeSubscription(100L, 20L, 2L, false))
+                    .isInstanceOf(AccessDeniedException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("subscription not found throws SubscriptionNotFoundException")
+        void upgradeSubscription_SubscriptionNotFound_ThrowsSubscriptionNotFoundException() {
+            when(subscriptionRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> subscriptionService.upgradeSubscription(999L, 20L, 1L, false))
+                    .isInstanceOf(SubscriptionNotFoundException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("subscription not ACTIVE throws SubscriptionNotActiveException")
+        void upgradeSubscription_SubscriptionNotActive_ThrowsSubscriptionNotActiveException() {
+            when(subscriptionRepository.findById(101L)).thenReturn(Optional.of(cancelledSubscription));
+
+            assertThatThrownBy(() -> subscriptionService.upgradeSubscription(101L, 20L, 1L, false))
+                    .isInstanceOf(SubscriptionNotActiveException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("new plan not found throws MembershipPlanNotFoundException")
+        void upgradeSubscription_NewPlanNotFound_ThrowsMembershipPlanNotFoundException() {
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+            when(membershipPlanRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> subscriptionService.upgradeSubscription(100L, 999L, 1L, false))
+                    .isInstanceOf(MembershipPlanNotFoundException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("new plan inactive throws MembershipPlanInactiveException")
+        void upgradeSubscription_NewPlanInactive_ThrowsMembershipPlanInactiveException() {
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+            when(membershipPlanRepository.findById(11L)).thenReturn(Optional.of(inactivePlan));
+
+            assertThatThrownBy(() -> subscriptionService.upgradeSubscription(100L, 11L, 1L, false))
+                    .isInstanceOf(MembershipPlanInactiveException.class);
+
+            verify(subscriptionRepository, never()).save(any());
         }
     }
 

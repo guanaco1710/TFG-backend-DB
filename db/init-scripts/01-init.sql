@@ -193,6 +193,7 @@ CREATE TABLE subscription (
     renewal_date            DATE        NOT NULL,
     classes_used_this_month INTEGER     NOT NULL DEFAULT 0,
     cancelled_at            TIMESTAMPTZ,
+    pending_plan_id         BIGINT               REFERENCES membership_plan(id),
     version                 BIGINT      NOT NULL DEFAULT 0,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
