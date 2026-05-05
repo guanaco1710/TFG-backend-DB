@@ -1,0 +1,862 @@
+{
+  "/home/guanaco/tfg/backend/tfg-backend/mvnw": {
+    "mtime": 1776769186.6060047,
+    "hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/db/seed-gyms.sql": {
+    "mtime": 1777890556.1796181,
+    "hash": "da935eb0ceffe5c0ea9f7516a59bbe20"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/db/reference-schema.sql": {
+    "mtime": 1777746687.745367,
+    "hash": "50672d67d7fd1fdb59a5c0d34db75b35"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/db/init-scripts/02-seed.sql": {
+    "mtime": 1777973381.93695,
+    "hash": "9507c87f94d877dff617ef18dbd076d6"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/db/init-scripts/01-init.sql": {
+    "mtime": 1777973381.93695,
+    "hash": "eb2b22065eabe1f37189f5015b51266d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/TfgBackendApplicationTests.java": {
+    "mtime": 1777274555.1665525,
+    "hash": "bca19ffe9069b4d5dd070049fefa6a25"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/AbstractRepositoryTest.java": {
+    "mtime": 1777274555.1665525,
+    "hash": "2563e74e27b60e802b64a6fa654ea4cd"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/subscription/SubscriptionExpirySchedulerTest.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "30dd04197ded71af2040bfb334962b3e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/subscription/SubscriptionServiceTest.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "a2fe71866d688030d106708c9d2819df"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/subscription/SubscriptionControllerTest.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "9ae34838d1a898029092d6cffa8794cf"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/auth/AuthControllerTest.java": {
+    "mtime": 1777753213.758528,
+    "hash": "38c01d8e27ead95899dfb49a81554206"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/auth/AuthServiceTest.java": {
+    "mtime": 1777753213.758528,
+    "hash": "a2057915e8365d64fdd1c4578ac78e48"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/auth/AuthIntegrationTest.java": {
+    "mtime": 1777753213.758528,
+    "hash": "24deeaef761f71b10833f6d0e45d89db"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/membershipplan/MembershipPlanControllerTest.java": {
+    "mtime": 1777454554.3995533,
+    "hash": "93df030210b569c332b5e4ba5c1a820f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/membershipplan/MembershipPlanServiceTest.java": {
+    "mtime": 1777454554.399792,
+    "hash": "f0e116c8ab43b657665e6e19aa1753f8"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/user/UserControllerTest.java": {
+    "mtime": 1777746687.7529094,
+    "hash": "8028b4d1c20ae25c1aeec59087be8b99"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/user/UserServiceTest.java": {
+    "mtime": 1777746687.7529094,
+    "hash": "71aaf2c86bbbd8480813b503b2c54afe"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/user/UserRepositoryTest.java": {
+    "mtime": 1777274555.1669443,
+    "hash": "4754964492f6389d1a4e88f68212213e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationServiceTest.java": {
+    "mtime": 1777746687.7519095,
+    "hash": "e80c2a3727cc047f87d4eddd0060e15b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationRepositoryTest.java": {
+    "mtime": 1777746687.7517052,
+    "hash": "67ae272aa92f557926f49f43e38b586f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationControllerTest.java": {
+    "mtime": 1777746687.7513635,
+    "hash": "aac411e2efd1e3fa25669ffbe97ff5ea"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/attendance/AttendanceServiceTest.java": {
+    "mtime": 1777454554.3989675,
+    "hash": "a8e693c579b7694d6a540bb187729df3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/attendance/AttendanceControllerTest.java": {
+    "mtime": 1777454554.3985534,
+    "hash": "7488e38b38b12c1dc5c97f21c0bdb9a7"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingServiceTest.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "d6710d4408299c005e2cc22c21e66f36"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingRepositoryTest.java": {
+    "mtime": 1777274555.1669443,
+    "hash": "9a1e240a66215f6172775b0c2e4afc5c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingControllerTest.java": {
+    "mtime": 1777845969.8297539,
+    "hash": "04ffccbc1134fa6939efa53230c945d8"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/paymentmethod/PaymentMethodRepositoryTest.java": {
+    "mtime": 1777746687.7525156,
+    "hash": "f1a8f37e41372bfe5481bbcedcc55fb8"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/paymentmethod/PaymentMethodControllerTest.java": {
+    "mtime": 1777746687.7519095,
+    "hash": "6a166ced86f917b32e38cccb71af9ad7"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/paymentmethod/PaymentMethodServiceTest.java": {
+    "mtime": 1777746687.7525156,
+    "hash": "57b0881b04591a92677efa0242237446"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/gym/GymServiceTest.java": {
+    "mtime": 1777890556.180618,
+    "hash": "c0ae58c56115b56d2e811bf76d35952d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/gym/GymControllerTest.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "e150d9236474405cd342ea4da806be6e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/gym/GymRepositoryTest.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "7fb34a5c97f52754fde4cc90b89e2cfc"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/gym/GymIntegrationTest.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "7c8e30c0119ab1bcc5479a9a4dc34282"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/stats/StatsServiceTest.java": {
+    "mtime": 1777388955.0753713,
+    "hash": "a4b0d92ba2881c0833501410520a0f92"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/stats/BookingRepositoryStatsTest.java": {
+    "mtime": 1777388789.2973857,
+    "hash": "81fd7f9c38868138afb37fb8a580799e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/stats/SubscriptionRepositoryStatsTest.java": {
+    "mtime": 1777840728.4069757,
+    "hash": "5801e2c5ecb4b26d854428d110328f63"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/stats/AttendanceRepositoryStatsTest.java": {
+    "mtime": 1777388789.2973857,
+    "hash": "46facf7f3ce3c3b9fec1e17e298e5da5"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/stats/StatsControllerTest.java": {
+    "mtime": 1777388996.2593677,
+    "hash": "37ef002e7c3ce7e6edf4be0c15359f49"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classsession/ClassSessionControllerTest.java": {
+    "mtime": 1777978243.8185308,
+    "hash": "3c62317ace452bcf6595f7918bdf69fe"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classsession/ClassSessionServiceTest.java": {
+    "mtime": 1777978243.8185308,
+    "hash": "1fe02f35a1afdd976614745bff7d5912"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classsession/ClassSessionRepositoryTest.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "93ff63c3ca9f5d3abc6f11cb39bb631f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/rating/RatingControllerTest.java": {
+    "mtime": 1777746687.7525156,
+    "hash": "cf1df8718390855eac6fb10310e2412b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/rating/RatingRepositoryTest.java": {
+    "mtime": 1777746687.7528787,
+    "hash": "f3b374af08035d7eaf19bff6ad5cd046"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/rating/RatingServiceTest.java": {
+    "mtime": 1777746687.7528787,
+    "hash": "0feaae0ce80c2c4de5e23b581ac14dbb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/waitlist/WaitlistRepositoryTest.java": {
+    "mtime": 1777274555.1681287,
+    "hash": "b0e130969e8263a6456cf63a7e08b76e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classtype/ClassTypeControllerTest.java": {
+    "mtime": 1777746687.7509093,
+    "hash": "710720e78b7b91e72afbe7370adcf96f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classtype/ClassTypeServiceTest.java": {
+    "mtime": 1777746687.7513635,
+    "hash": "9d8cd41a54bee1fdaa321be8b6e85f81"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/classtype/ClassTypeRepositoryTest.java": {
+    "mtime": 1777746687.7513635,
+    "hash": "8e778c7c8d623d914e7fea01f41d9d53"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/enums/EnumsTest.java": {
+    "mtime": 1777274555.1669443,
+    "hash": "9528d8e8e27cd80df1e685fa42421aa3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/TfgBackendApplication.java": {
+    "mtime": 1777746687.745367,
+    "hash": "1c9d6fb2b09545b0feb41d6fe59ad5fb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/SubscriptionExpiryScheduler.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "4f874cbe7f9b93cd3ebb25181ee98ab8"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/SubscriptionService.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "d485c89b03affbc1a58f7eda18507614"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/SubscriptionController.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "6cedbd3f6b4b5c3fecab4115c081c26b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/Subscription.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "44be10b6344d3a0668b64b48461509c2"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/SubscriptionRepository.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "b3071b5dcdbbd306b9af0639a81f7581"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/dto/MembershipPlanSummary.java": {
+    "mtime": 1777274555.1647494,
+    "hash": "27e607e6c21c96720d34bab7319266ce"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/dto/UpgradeSubscriptionRequest.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "eedd202960a9ad04130c02338a8d3604"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/dto/CreateSubscriptionRequest.java": {
+    "mtime": 1777840728.4059758,
+    "hash": "fdd20778bb9a9c42763b01ab63f58b52"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/dto/GymSummary.java": {
+    "mtime": 1777840728.4069757,
+    "hash": "0bd3284b6ed6324628cc117651993960"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/subscription/dto/SubscriptionResponse.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "8ec9761ad9185cb037dde06e13d5c242"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/AuthService.java": {
+    "mtime": 1777753213.7575278,
+    "hash": "6c87f076bb377734fc83ff31530b2536"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/JwtAuthFilter.java": {
+    "mtime": 1777274555.1564732,
+    "hash": "eb26f46b0ada99d70b3a231856ceba08"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/AuthenticatedUser.java": {
+    "mtime": 1777274555.1564732,
+    "hash": "0fff95c4f768c68fdfdb3776b2519775"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/AuthController.java": {
+    "mtime": 1777753213.756528,
+    "hash": "9b8913b6f22a01714ebf55c2c969bd06"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/JwtService.java": {
+    "mtime": 1777753213.7575278,
+    "hash": "7855f94fe91b95568c68b3a4e1ee850b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/LogoutRequest.java": {
+    "mtime": 1777753213.7575278,
+    "hash": "efbcb9085db662d55fbe12e680904afb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/LoginRequest.java": {
+    "mtime": 1777274555.1569521,
+    "hash": "307201953096c73140d2085d465241d1"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/AuthResponse.java": {
+    "mtime": 1777274555.1564732,
+    "hash": "72d35d70e2f43f65f50da3df193896a3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/RefreshRequest.java": {
+    "mtime": 1777274555.1569521,
+    "hash": "b6610894c19b368453955f8389400811"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/RegisterRequest.java": {
+    "mtime": 1777274555.1569521,
+    "hash": "0930068bb44f91a32f7ea45c4745d4ec"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/auth/dto/UserSummary.java": {
+    "mtime": 1777274555.1569521,
+    "hash": "ef2d04d546b8e2d1ca5421fc2d4b0f71"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/MembershipPlanController.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "1e4c02cd3b483606a3767db199c76692"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/MembershipPlan.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "a405778bc580d7fb41b8cdf0e4385782"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/MembershipPlanRepository.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "45361b7d15bae25a0fe913337ff11d3c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/MembershipPlanService.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "c1c7ae0bcd7999a3cc575a28ec50eee0"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/dto/MembershipPlanResponse.java": {
+    "mtime": 1777452174.4917586,
+    "hash": "e2cebdcffd8bdeb1da2911e0a677d342"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/membershipplan/dto/MembershipPlanRequest.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "a9ab4997ab33d2e4ede18e595249695f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/User.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "e60c7a8882a0817b24f7c73e03278398"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/UserRepository.java": {
+    "mtime": 1777274555.1650872,
+    "hash": "c4e19b64b7298d69d1959a08171962cc"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/UserService.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "f668bfd87a37a9ede1be4797b1265b34"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/UserController.java": {
+    "mtime": 1777390240.1752605,
+    "hash": "95ae5eb09f6a5d919681c0bc722fa26c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/dto/CreateUserRequest.java": {
+    "mtime": 1777274555.1650872,
+    "hash": "ba7c622b67db5a1281a81471a0952aeb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/dto/UserResponse.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "5712911c47a9d76dc7386fda68e44734"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/dto/UpdateUserRequest.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "6a0ad28dae965e0b1145cb8b519d703f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/user/dto/AdminUpdateUserRequest.java": {
+    "mtime": 1777746687.7499094,
+    "hash": "b8b076d5d78faddf605a9517ca398391"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/NotificationController.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "be937c2d854d1ceaa9378763d8176805"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/NotificationService.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "90501a41bca54661b131a1c581d8408e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/NotificationRepository.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "170109775345771415b6e171b8165256"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/Notification.java": {
+    "mtime": 1777815497.4649267,
+    "hash": "751ad83e1a36c6a70c914ddaccd17f45"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/dto/UnreadCountResponse.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "4bee2c19de0a607661efd4317a97186a"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/dto/NotificationResponse.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "3415102c6a3773c1996710d0591fa93e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/notification/dto/MarkReadResponse.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "72215d16f91de3ef61723c37183cf021"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/AttendanceController.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "79f35f7f31773010841d6f22952added"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/AttendanceService.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "70772a6438493a2c1b6b68b61a71acd1"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/AttendanceRepository.java": {
+    "mtime": 1777388789.2903857,
+    "hash": "ad2c9021073dc2b430b9f587f61dccd5"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/Attendance.java": {
+    "mtime": 1777274555.1549442,
+    "hash": "3156d1d8e75492d4388e79d93cb59aaa"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/dto/AttendanceResponse.java": {
+    "mtime": 1777274555.1561286,
+    "hash": "9e25022c0ab3ea8e11cd5558330841af"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/dto/AttendanceEntryRequest.java": {
+    "mtime": 1777274555.1556947,
+    "hash": "31ed6702e3f5576d667b39c6059247dc"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/attendance/dto/RecordAttendanceRequest.java": {
+    "mtime": 1777274555.1561286,
+    "hash": "bd282916d7dc99ecb70444e3a73fd774"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/DataInitializer.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "b82f85319876e66008e72bacf40297c2"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/BaseEntity.java": {
+    "mtime": 1777274555.1596262,
+    "hash": "56718d821a09fd4e0c0c05c03c22c241"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/PageResponse.java": {
+    "mtime": 1777367995.795581,
+    "hash": "aeb194be8f806a5499863d833f952efd"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/GlobalExceptionHandler.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "957dfc0f747470395179875e4c713d1e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/AlreadyOnWaitlistException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "82d2d3cb66a406b70d3461ad463df782"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/NotAttendedSessionException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "7c7209c95adae08cdfdd9f39efe3ad28"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/NotificationNotFoundException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "ddfa494dfa29bfeca9c400fc3b2fb709"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SessionNotAttendableException.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "11b8a156fa4cbd7a9118aa135f46b46a"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/InvalidDefaultToggleException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "9d4d3aab0014cb6b7b93d7258dfd6f6f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SessionNotFoundException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "52a5fa3a9b77894dd76100851419a1ce"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SubscriptionAlreadyActiveException.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "49b177aafb66ef9bbdb2d0c2ce4fdd52"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/MembershipPlanNotFoundException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "49999f9e33c3697828a05c8eb34ef464"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/RatingAlreadyExistsException.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "b3f3515cba947ab682d4a1c1b879ac0c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/GymNameAlreadyExistsException.java": {
+    "mtime": 1777495407.061866,
+    "hash": "35027d89425d9195259baa59f1bcc2f1"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/MonthlyClassLimitReachedException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "90d6aa12f9287d53a82001b2da2cd6a3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/AlreadyBookedException.java": {
+    "mtime": 1777367995.795581,
+    "hash": "fe4c0bef321975c46734399c7f08c0fd"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/UserNotFoundException.java": {
+    "mtime": 1777390240.1752605,
+    "hash": "dcb8a7b2b141ac5f1d19845dd83d1c44"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/ClassTypeInUseException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "946ad86ae4a8309b50d7f03626b57a50"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/NoActiveSubscriptionException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "e98b41c20daf3b042e62a030635ffa97"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/MembershipPlanInUseException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "97ad8438ed1ecd48a56c65eb87bd16d0"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/RatingNotFoundException.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "35f680287ddcfb31cbe8d341b3013ab2"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/PaymentMethodNotFoundException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "37776ba7ccb1ab1c6fc5c7affaa5fb44"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/CardExpiredException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "415df3b4aab098c6188f21b49675ea3e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SubscriptionNotFoundException.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "c57cdd4a49eb2b64d9354c8f100b31a4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/InstructorNotFoundException.java": {
+    "mtime": 1777571203.4179938,
+    "hash": "8f5a1d89f0ae78f0a92eaef9acd92c88"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/ClassTypeNameAlreadyExistsException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "4b4f6f1e76b63d583e2ad61824e54012"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SubscriptionCancellationPendingException.java": {
+    "mtime": 1777973381.9379501,
+    "hash": "bad71c5230937ef0f5baaa5fa6c90a45"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/WaitlistNotPermittedException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "2ed6c0b9086d730fab11bf3cd77c19f0"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/ClassTypeNotFoundException.java": {
+    "mtime": 1777571203.4179938,
+    "hash": "f531f310820859bbc79ebe793eab63ac"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/MembershipPlanInactiveException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "b1de76f8bb0dd32d29c80add2bcd0b9b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/BookingNotFoundException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "0ba21768f36419cf646ea42793af77cf"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/GymNotFoundException.java": {
+    "mtime": 1777495407.061866,
+    "hash": "4da4b4facae52119361dcdaf602f8d33"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/ClassFullException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "73237bad20f4fc92687c1898d6cb451f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/EmailAlreadyExistsException.java": {
+    "mtime": 1777274555.1598916,
+    "hash": "35dbf6698c0c038443873374187f0b7e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SubscriptionNotActiveException.java": {
+    "mtime": 1777454554.3975534,
+    "hash": "f2749b31309115f81527719d421a89ab"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/WaitlistEntryNotFoundException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "32ee0088e2c8edf553ce67bdb6c0527b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/DuplicatePaymentMethodException.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "41441f5380336fc289a5750a9933de13"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/AttendanceNotFoundException.java": {
+    "mtime": 1777454554.3965533,
+    "hash": "eee1e3d6add828240084eca567fe00da"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SpecialtyNotAllowedException.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "c0642251f19a430c4127064a7dba1fce"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/BookingAlreadyCancelledException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "9046466aa0836c222a76cc040e968aae"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/common/exception/SessionNotBookableException.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "2d81c80cb32478d83870b1a9348aac72"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/BookingController.java": {
+    "mtime": 1777367995.795581,
+    "hash": "6dc7b92488475f70d5412dc732d76cac"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/BookingRepository.java": {
+    "mtime": 1777746687.7459095,
+    "hash": "1130354cd1a87b7bf99cadffc2a3a31e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/Booking.java": {
+    "mtime": 1777274555.1569521,
+    "hash": "a97dde59c5305fb909b13af45dcc5b69"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/BookingService.java": {
+    "mtime": 1777746687.7459095,
+    "hash": "6db39b1526b25e8724a6eb7fb0a29b08"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/CreateBookingRequest.java": {
+    "mtime": 1777274555.1577334,
+    "hash": "1d4fe6b97f247f7d34b05b80daf8828c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/ClassSessionSummary.java": {
+    "mtime": 1777274555.1577334,
+    "hash": "75fd720a92e6a535f6724f8d37a36aa4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/BookingResponse.java": {
+    "mtime": 1777274555.157475,
+    "hash": "45cce584217c825bf4801af7ab9af37f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/RosterEntryResponse.java": {
+    "mtime": 1777367995.795581,
+    "hash": "4b15044e5693eadfbf3247b1e9e8050d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/PaymentMethod.java": {
+    "mtime": 1777746687.7491522,
+    "hash": "4c4be83939a951eb82c0547ac6008e92"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/PaymentMethodService.java": {
+    "mtime": 1777746687.7491522,
+    "hash": "45b6b4da9004dedf50e2ae0b1e612e62"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/PaymentMethodController.java": {
+    "mtime": 1777746687.7491522,
+    "hash": "abf1ff8b1664f4f947e9038e0758a8fa"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/CardType.java": {
+    "mtime": 1777746687.7479093,
+    "hash": "451b4ebc63f1e10ae42993fa05511219"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/PaymentMethodRepository.java": {
+    "mtime": 1777746687.7491522,
+    "hash": "270df805f9bfdc5d8e1757857be661d3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/dto/AddPaymentMethodRequest.java": {
+    "mtime": 1777746687.7491522,
+    "hash": "81be9efacdeb7b39a79b1520a4e35149"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/dto/PaymentMethodResponse.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "1b9018f6d831a465ba780549720cf796"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/paymentmethod/dto/SetDefaultRequest.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "f65264e0906dc098b6281790a583f7ef"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/GymService.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "637ba7e930e9cf7a5c128a100a99000c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/GymRepository.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "8a815c71c850610f96aab340754ab4cc"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/GymController.java": {
+    "mtime": 1777890556.1796181,
+    "hash": "fd47d427800a535026ed5eedf5b39094"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/Gym.java": {
+    "mtime": 1777274555.1609442,
+    "hash": "a97e7092e4474997df67e0f364233d9a"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/dto/GymResponse.java": {
+    "mtime": 1777495407.062866,
+    "hash": "d8467db9ab1fc1de0c4a5360c3278d4a"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/gym/dto/GymRequest.java": {
+    "mtime": 1777495407.061866,
+    "hash": "47e42c17856dff3bd25e1d0a37b7547a"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/StatsService.java": {
+    "mtime": 1777388789.2914379,
+    "hash": "c86cf6e1f5baab410a16e296e6d28d0c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/StatsController.java": {
+    "mtime": 1777388789.2903857,
+    "hash": "2d6fcca6847a3f2bb5c573dc3e794dbe"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/dto/AttendanceHistoryEntry.java": {
+    "mtime": 1777388789.2914379,
+    "hash": "78e0464d1f9a3941999792cd299f0683"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/dto/ClassTypeInfo.java": {
+    "mtime": 1777388789.2916327,
+    "hash": "8faabac0d9b45e2a1dac939848d1e6d7"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/dto/ClassSessionInfo.java": {
+    "mtime": 1777388789.2916327,
+    "hash": "ac5d8258f495d7f820d121d1108b4d3f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/stats/dto/UserStatsResponse.java": {
+    "mtime": 1777388789.2916327,
+    "hash": "874ba474825555fd4a7152f124a0cc72"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/ClassSessionController.java": {
+    "mtime": 1777978243.8185308,
+    "hash": "1da4432840b8ec221a319421ab0d6eef"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/ClassSessionRepository.java": {
+    "mtime": 1777978243.8185308,
+    "hash": "85dcc4813ef4f354707d0b0a12b7f07c"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/ClassSessionService.java": {
+    "mtime": 1777978243.8185308,
+    "hash": "53b2f36e288fb0344f9e0736fed2b26b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/ClassSession.java": {
+    "mtime": 1777746687.7459095,
+    "hash": "ec0826e28eed7a6ad24dd0646eb3fc4b"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/dto/InstructorSummary.java": {
+    "mtime": 1777274555.1584978,
+    "hash": "6ee03d7036d539aa788b17c55d53c5a4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/dto/ClassSessionResponse.java": {
+    "mtime": 1777274555.1584978,
+    "hash": "5c7f1987058e4d925544111c68ebeb8d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/dto/ClassTypeSummary.java": {
+    "mtime": 1777274555.1584978,
+    "hash": "b07622eca9984f06984523b7a6bb5d4d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/dto/ClassSessionRequest.java": {
+    "mtime": 1777274555.1582437,
+    "hash": "c7f3cc801f17deca02ed0402808ebb05"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classsession/dto/GymSummary.java": {
+    "mtime": 1777274555.1584978,
+    "hash": "6b3be58d4027b5ed7499a586a8d39da9"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/RatingRepository.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "e72432fdbfab06d7ef6aac82e1609afb"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/RatingController.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "73dea1249661c051c2fc3dc5a1f0a066"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/RatingService.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "c74b45f7a383ff5f0e149fcd9d54769d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/Rating.java": {
+    "mtime": 1777274555.1633968,
+    "hash": "40f8d7a858dfd51e37686af91433aca9"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/dto/CreateRatingRequest.java": {
+    "mtime": 1777274555.1637948,
+    "hash": "e714de36b302f31f66975e16b5570161"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/dto/UpdateRatingRequest.java": {
+    "mtime": 1777746687.7494383,
+    "hash": "6a24a63bf1a3b2906c00782b0ebc7d07"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/rating/dto/RatingResponse.java": {
+    "mtime": 1777274555.164187,
+    "hash": "8ca6fe2356fb8066dd10d8d302515488"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/waitlist/WaitlistRepository.java": {
+    "mtime": 1777274555.1658413,
+    "hash": "3f1b4a933c31eef24a0d82707985d906"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/waitlist/WaitlistEntry.java": {
+    "mtime": 1777274555.1653917,
+    "hash": "8e7966588e8c2a4940de29409ea3751e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/waitlist/dto/WaitlistEntryResponse.java": {
+    "mtime": 1777367995.7965813,
+    "hash": "c998275afdebe6dfe8b0045b6df9202e"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/ClassTypeRepository.java": {
+    "mtime": 1777746687.7459095,
+    "hash": "b1eeed10c00d8c74105762e7cd8571de"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/ClassType.java": {
+    "mtime": 1777274555.1589441,
+    "hash": "71f47397d42ee94c845ab163e720ddd7"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/ClassTypeController.java": {
+    "mtime": 1777746687.7459095,
+    "hash": "1e3fdbb20f2c3f5195da93c4701684c3"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/ClassTypeService.java": {
+    "mtime": 1777746687.7469094,
+    "hash": "dc22d5c73a162646583ad682b5bd8717"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/dto/ClassTypeResponse.java": {
+    "mtime": 1777274555.1596262,
+    "hash": "653e597839b3837b76afa4bbc2289443"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/classtype/dto/ClassTypeRequest.java": {
+    "mtime": 1777274555.1593928,
+    "hash": "9d5533aae573c7d53978742be7c04d12"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/config/JpaConfig.java": {
+    "mtime": 1777274555.1601567,
+    "hash": "eea87b3376acd9fa09c25b78085e86af"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/config/SecurityConfig.java": {
+    "mtime": 1777495407.061866,
+    "hash": "de54d61c483b7d570455294a5258827d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/NotificationType.java": {
+    "mtime": 1777274555.16057,
+    "hash": "3c6cbc9243c1f856c36973b4e2831f8d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/SessionStatus.java": {
+    "mtime": 1777274555.16057,
+    "hash": "395b6466c0ef9c58d1381357ab511ccc"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/UserRole.java": {
+    "mtime": 1777274555.1609442,
+    "hash": "5de21145925f53a1a7684b2257788f81"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/AttendanceStatus.java": {
+    "mtime": 1777274555.160402,
+    "hash": "e8a80122108a474d0d9c27802fb7c8db"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/BookingStatus.java": {
+    "mtime": 1777274555.16057,
+    "hash": "04b5f638fcd9b1c4d9529f6017c05444"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/enums/SubscriptionStatus.java": {
+    "mtime": 1777274555.16057,
+    "hash": "57369b050fe4534852880d6c381c0478"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/db/migration/V1__create_gymbook_schema.sql": {
+    "mtime": 1777746687.7499094,
+    "hash": "3e1e59236190a2784ec4be929ecd3ed6"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/db/migration/V2__add_notification_read.sql": {
+    "mtime": 1777746687.7499094,
+    "hash": "8b3cb6b648323df47b5ce6af64b97559"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/db/migration/V3__add_payment_method.sql": {
+    "mtime": 1777746687.7499094,
+    "hash": "35d4e3e4695dfffd775e1f6cef62c098"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/db/migration/V4__rename_notification_read_to_is_read.sql": {
+    "mtime": 1777815497.4649267,
+    "hash": "927628a427963c743b8c449761f7aaa4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/db/migration/V5__add_subscription_pending_plan.sql": {
+    "mtime": 1777973381.9379501,
+    "hash": "450f33d9b3bf2ac75f841983ad84beab"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/docker-compose.yml": {
+    "mtime": 1777274555.151196,
+    "hash": "6629a741dc4e5d4fbb0ecbf08b7a51d4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/HELP.md": {
+    "mtime": 1776769219.278733,
+    "hash": "f572e64705a081eb30cde6f4e933d52d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/CLAUDE.md": {
+    "mtime": 1777274555.1492624,
+    "hash": "262e01a7596df82aaed1e53c0897aaab"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/db/README.md": {
+    "mtime": 1777746687.745367,
+    "hash": "b1f4a57349147cd71629f43b702cd5a1"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/docs/endpoints.md": {
+    "mtime": 1777978243.8185308,
+    "hash": "54d7424bbc1b4cc432b52a7dc6dcab8d"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/application.yaml": {
+    "mtime": 1777274555.165944,
+    "hash": "84c5850b0fd6465a7b88a425513d29a4"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/application-postgres.yaml": {
+    "mtime": 1777746687.7499094,
+    "hash": "e07974ef898570bcfa7d497746d95c36"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/application-h2.yaml": {
+    "mtime": 1777274555.1658413,
+    "hash": "c82328361340d21d080072cd2c65fa65"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/docs/GymBook_Documentacio_Completa.pdf": {
+    "mtime": 1777274555.1539443,
+    "hash": "c86b575702741585ac2b3ca17e34a72c"
+  }
+}
