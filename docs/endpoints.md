@@ -143,14 +143,29 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
+| `GET` | `/users/me` | Get own profile | Any authenticated |
+| `PATCH` | `/users/me` | Update own name / phone / specialty | Any authenticated |
 | `GET` | `/users` | List all users (paginated) | `ADMIN` |
 | `GET` | `/users/{id}` | Get any user by ID | `ADMIN` |
-| `POST` | `/users` | Create a user with any role (e.g. instructor) | `ADMIN` |
-| `PUT` | `/users/{id}` | Update any user | `ADMIN` |
-| `DELETE` | `/users/{id}` | Soft-delete a user | `ADMIN` |
-| `GET` | `/users/me` | Get own profile | Any |
-| `PUT` | `/users/me` | Update own profile | Any |
-| `PATCH` | `/users/me/password` | Change own password | Any |
+| `PATCH` | `/users/{id}` | Update any user (name, phone, role, active) | `ADMIN` |
+| `DELETE` | `/users/{id}` | Soft-delete a user (sets active=false) | `ADMIN` |
+
+### UserResponse shape (all user endpoints return this)
+
+```json
+{
+  "id": 1,
+  "name": "Alice Smith",
+  "email": "alice@example.com",
+  "phone": "+34 911 000 001",
+  "role": "CUSTOMER",
+  "active": true,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "specialty": null
+}
+```
+
+> **Note for frontend:** field is `name` (single field), NOT `firstName`/`lastName`. `specialty` is non-null only for `INSTRUCTOR` role. `avatarUrl` does not exist — not implemented.
 
 ### GET /users — Query params
 | Param | Type | Description |
@@ -158,7 +173,6 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
 | `role` | `CUSTOMER\|INSTRUCTOR\|ADMIN` | Filter by role |
 | `page` | int | Page number (0-based) |
 | `size` | int | Page size (default 20) |
-| `sort` | string | e.g. `lastName,asc` |
 
 ### GET /users — Response 200
 ```json
@@ -166,12 +180,13 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
   "content": [
     {
       "id": 1,
-      "email": "string",
-      "firstName": "string",
-      "lastName": "string",
+      "name": "Alice Smith",
+      "email": "alice@example.com",
+      "phone": "+34 911 000 001",
       "role": "CUSTOMER",
       "active": true,
-      "createdAt": "2024-01-01T00:00:00Z"
+      "createdAt": "2024-01-01T00:00:00Z",
+      "specialty": null
     }
   ],
   "page": 0,
@@ -182,32 +197,14 @@ Returns 401 if the token is unknown, already used, or expired (15-minute window)
 }
 ```
 
-### POST /users — Request
+### PATCH /users/me — Request
 ```json
 {
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "role": "INSTRUCTOR"
-}
-// Response 201 + Location: /api/v1/users/{id}
-```
-
-### PUT /users/me — Request
-```json
-{
-  "firstName": "string",
-  "lastName": "string",
+  "name": "string",
   "phone": "string",
-  "avatarUrl": "string"
+  "specialty": "string"
 }
-```
-
-### PATCH /users/me/password — Request
-```json
-{ "currentPassword": "string", "newPassword": "string" }
-// Response 204
+// All fields optional (partial update). Response 200 — updated UserResponse.
 ```
 
 ---
@@ -303,24 +300,19 @@ Concrete scheduled occurrences of a class type.
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| `GET` | `/class-sessions` | List sessions (schedule) | Any |
-| `GET` | `/class-sessions/{id}` | Get session detail | Any |
+| `GET` | `/class-sessions` | List sessions (paginated) | Any authenticated |
+| `GET` | `/class-sessions/schedule` | Sessions in a datetime range (flat list) | Any authenticated |
+| `GET` | `/class-sessions/{id}` | Get session detail | Any authenticated |
 | `POST` | `/class-sessions` | Schedule a session | `ADMIN` |
 | `PUT` | `/class-sessions/{id}` | Update a session | `ADMIN` |
-| `DELETE` | `/class-sessions/{id}` | Cancel a session | `ADMIN` |
-| `GET` | `/class-sessions/{id}/bookings` | List all bookings for session | `INSTRUCTOR`, `ADMIN` |
-| `POST` | `/class-sessions/{id}/attendance` | Mark attendance for session | `INSTRUCTOR`, `ADMIN` |
+| `POST` | `/class-sessions/{id}/cancel` | Cancel a session | `ADMIN` |
+
+> **Known issue for frontend:** `startTime` serialises as `LocalDateTime` with **no timezone** (e.g. `"2024-06-01T09:00:00"`). Parse it as the gym's local time until a backend fix lands.
 
 ### GET /class-sessions — Query params
 | Param | Type | Description |
 |-------|------|-------------|
-| `gymId` | Long | Filter by gym |
 | `classTypeId` | Long | Filter by class type |
-| `instructorId` | Long | Filter by instructor |
-| `from` | ISO date | Start of date range (inclusive) |
-| `to` | ISO date | End of date range (inclusive) |
-| `status` | `SCHEDULED\|CANCELLED\|COMPLETED` | Filter by status |
-| `availableOnly` | boolean | Only sessions with open spots |
 | `page` | int | |
 | `size` | int | |
 
@@ -330,8 +322,8 @@ Concrete scheduled occurrences of a class type.
   "content": [
     {
       "id": 1,
-      "classType": { "id": 1, "name": "Spinning 45min" },
-      "gym": { "id": 1, "name": "Main Gym" },
+      "classType": { "id": 1, "name": "Spinning 45min", "level": "INTERMEDIATE" },
+      "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
       "instructor": { "id": 2, "name": "Jane Doe", "specialty": "Cycling" },
       "startTime": "2024-06-01T09:00:00",
       "durationMinutes": 45,
@@ -345,9 +337,20 @@ Concrete scheduled occurrences of a class type.
   "page": 0,
   "size": 20,
   "totalElements": 50,
-  "totalPages": 3
+  "totalPages": 3,
+  "hasMore": true
 }
 ```
+
+`status` is one of `SCHEDULED`, `ACTIVE`, `CANCELLED`, `FINISHED`.
+
+### GET /class-sessions/schedule — Query params
+| Param | Type | Description |
+|-------|------|-------------|
+| `from` | ISO datetime | Start of range (required) |
+| `to` | ISO datetime | End of range (required) |
+
+Returns a flat `List` (no pagination). Same object shape as content items above.
 
 ### POST /class-sessions — Request
 ```json
@@ -361,17 +364,6 @@ Concrete scheduled occurrences of a class type.
   "room": "Studio A"
 }
 // Response 201 + Location: /api/v1/class-sessions/{id}
-```
-
-### POST /class-sessions/{id}/attendance — Request
-```json
-{
-  "attendances": [
-    { "userId": 10, "status": "ATTENDED" },
-    { "userId": 11, "status": "NO_SHOW" }
-  ]
-}
-// Response 204
 ```
 
 ---
@@ -674,48 +666,67 @@ Response 200 — updated subscription object
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| `GET` | `/stats/me` | Own activity statistics | `CUSTOMER` |
-| `GET` | `/stats/users/{id}` | Statistics for any user | `ADMIN` |
-| `GET` | `/stats/sessions/{id}` | Occupancy stats for a session | `INSTRUCTOR`, `ADMIN` |
-| `GET` | `/stats/gym` | Overall gym-level statistics | `ADMIN` |
+| `GET` | `/stats/me` | Own activity statistics | Any authenticated |
+| `GET` | `/stats/me/history` | Paginated attendance history | Any authenticated |
 
-### GET /stats/me — Query params
-| Param | Type | Description |
-|-------|------|-------------|
-| `from` | ISO date | Start of period |
-| `to` | ISO date | End of period |
+> **Note for frontend:** `GET /stats/users/{id}`, `GET /stats/sessions/{id}`, and `GET /stats/gym` are **not implemented**.
 
 ### GET /stats/me — Response 200
+
 ```json
 {
-  "period": { "from": "2024-01-01", "to": "2024-05-31" },
-  "totalClassesAttended": 38,
+  "totalBookings": 42,
+  "totalAttended": 38,
+  "totalNoShows": 2,
+  "totalCancellations": 4,
+  "attendanceRate": 0.95,
   "currentStreak": 5,
-  "longestStreak": 14,
-  "noShowCount": 2,
-  "cancellationCount": 4,
-  "favoriteClassType": { "id": 1, "name": "Spinning 45min", "attendanceCount": 20 },
-  "attendanceByMonth": [
-    { "month": "2024-01", "attended": 8 },
-    { "month": "2024-02", "attended": 7 }
-  ],
-  "attendanceByClassType": [
-    { "classTypeId": 1, "name": "Spinning 45min", "count": 20 }
-  ]
+  "favoriteClassType": "Spinning 45min",
+  "classesBookedThisMonth": 8,
+  "classesRemainingThisMonth": 12
 }
 ```
 
-### GET /stats/gym — Response 200
+| Field | Type | Notes |
+|-------|------|-------|
+| `totalBookings` | long | All bookings ever |
+| `totalAttended` | long | Status = ATTENDED |
+| `totalNoShows` | long | Status = NO_SHOW |
+| `totalCancellations` | long | Status = CANCELLED |
+| `attendanceRate` | double | `attended / (attended + noShows)`, `0.0` when no data |
+| `currentStreak` | int | Consecutive days with at least one attended class |
+| `favoriteClassType` | string or null | Name of most-attended class type |
+| `classesBookedThisMonth` | long | Bookings created in current calendar month (UTC) |
+| `classesRemainingThisMonth` | int or null | From active subscription; `null` = no sub or unlimited plan |
+
+### GET /stats/me/history — Query params
+| Param | Type | Description |
+|-------|------|-------------|
+| `page` | int | |
+| `size` | int | |
+
+### GET /stats/me/history — Response 200
 ```json
 {
-  "period": { "from": "2024-01-01", "to": "2024-05-31" },
-  "totalMembers": 250,
-  "activeSubscriptions": 198,
-  "totalClassesScheduled": 420,
-  "averageOccupancyRate": 0.73,
-  "mostPopularClassType": { "id": 1, "name": "Spinning 45min" },
-  "peakHour": "09:00",
-  "peakDayOfWeek": "TUESDAY"
+  "content": [
+    {
+      "id": 1,
+      "recordedAt": "2024-05-20T10:00:00Z",
+      "status": "ATTENDED",
+      "session": {
+        "id": 10,
+        "startTime": "2024-05-20T09:00:00",
+        "durationMinutes": 45,
+        "room": "Studio A",
+        "classType": { "id": 1, "name": "Spinning 45min", "level": "INTERMEDIATE" }
+      }
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 38,
+  "totalPages": 2,
+  "hasMore": true
 }
 ```
 
