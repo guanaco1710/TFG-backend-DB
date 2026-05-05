@@ -32,8 +32,14 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
             @Param("to")     LocalDateTime to,
             @Param("status") SessionStatus status);
 
-    /** Paginated list for admin — all statuses, optional filter by classType. */
+    /** Paginated list — optional filter by classType. */
     Page<ClassSession> findByClassTypeId(Long classTypeId, Pageable pageable);
+
+    /** Paginated list — optional filter by gym. */
+    Page<ClassSession> findByGymId(Long gymId, Pageable pageable);
+
+    /** Paginated list — filter by both gym and classType. */
+    Page<ClassSession> findByGymIdAndClassTypeId(Long gymId, Long classTypeId, Pageable pageable);
 
     /** All sessions led by a specific instructor. */
     Page<ClassSession> findByInstructorId(Long instructorId, Pageable pageable);

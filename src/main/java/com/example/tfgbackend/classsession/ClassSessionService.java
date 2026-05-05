@@ -91,9 +91,13 @@ public class ClassSessionService {
                 .toList();
     }
 
-    public PageResponse<ClassSessionResponse> listSessions(Long classTypeId, Pageable pageable) {
+    public PageResponse<ClassSessionResponse> listSessions(Long classTypeId, Long gymId, Pageable pageable) {
         Page<ClassSession> page;
-        if (classTypeId != null) {
+        if (gymId != null && classTypeId != null) {
+            page = classSessionRepository.findByGymIdAndClassTypeId(gymId, classTypeId, pageable);
+        } else if (gymId != null) {
+            page = classSessionRepository.findByGymId(gymId, pageable);
+        } else if (classTypeId != null) {
             page = classSessionRepository.findByClassTypeId(classTypeId, pageable);
         } else {
             page = classSessionRepository.findAll(pageable);

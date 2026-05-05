@@ -334,37 +334,71 @@ class ClassSessionServiceTest {
     class ListSessions {
 
         @Test
-        @DisplayName("with classTypeId filter delegates to findByClassTypeId")
-        void listSessions_WithClassTypeId_UsesFilteredQuery() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<ClassSession> page = new PageImpl<>(List.of(scheduledSession), pageable, 1);
-
-            when(classSessionRepository.findByClassTypeId(10L, pageable)).thenReturn(page);
-            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
-
-            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(10L, pageable);
-
-            assertThat(result.content()).hasSize(1);
-            assertThat(result.content().get(0).classType().id()).isEqualTo(10L);
-            assertThat(result.totalElements()).isEqualTo(1);
-            verify(classSessionRepository).findByClassTypeId(10L, pageable);
-            verify(classSessionRepository, never()).findAll(any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("without classTypeId filter uses findAll(pageable)")
-        void listSessions_WithoutClassTypeId_UsesAllQuery() {
+        @DisplayName("no filters — uses findAll(pageable)")
+        void listSessions_NoFilters_UsesAllQuery() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<ClassSession> page = new PageImpl<>(List.of(scheduledSession), pageable, 1);
 
             when(classSessionRepository.findAll(pageable)).thenReturn(page);
             when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
 
-            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(null, pageable);
+            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(null, null, pageable);
 
             assertThat(result.content()).hasSize(1);
             verify(classSessionRepository).findAll(pageable);
             verify(classSessionRepository, never()).findByClassTypeId(any(), any());
+            verify(classSessionRepository, never()).findByGymId(any(), any());
+            verify(classSessionRepository, never()).findByGymIdAndClassTypeId(any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("classTypeId only — delegates to findByClassTypeId")
+        void listSessions_ClassTypeIdOnly_UsesClassTypeFilter() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<ClassSession> page = new PageImpl<>(List.of(scheduledSession), pageable, 1);
+
+            when(classSessionRepository.findByClassTypeId(10L, pageable)).thenReturn(page);
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+
+            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(10L, null, pageable);
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).classType().id()).isEqualTo(10L);
+            verify(classSessionRepository).findByClassTypeId(10L, pageable);
+            verify(classSessionRepository, never()).findAll(any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("gymId only — delegates to findByGymId")
+        void listSessions_GymIdOnly_UsesGymFilter() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<ClassSession> page = new PageImpl<>(List.of(scheduledSession), pageable, 1);
+
+            when(classSessionRepository.findByGymId(5L, pageable)).thenReturn(page);
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+
+            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(null, 5L, pageable);
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).gym().id()).isEqualTo(5L);
+            verify(classSessionRepository).findByGymId(5L, pageable);
+            verify(classSessionRepository, never()).findAll(any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("gymId + classTypeId — delegates to findByGymIdAndClassTypeId")
+        void listSessions_BothFilters_UsesCombinedQuery() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<ClassSession> page = new PageImpl<>(List.of(scheduledSession), pageable, 1);
+
+            when(classSessionRepository.findByGymIdAndClassTypeId(5L, 10L, pageable)).thenReturn(page);
+            when(bookingRepository.countConfirmedBySessionId(100L)).thenReturn(0L);
+
+            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(10L, 5L, pageable);
+
+            assertThat(result.content()).hasSize(1);
+            verify(classSessionRepository).findByGymIdAndClassTypeId(5L, 10L, pageable);
+            verify(classSessionRepository, never()).findAll(any(Pageable.class));
         }
 
         @Test
@@ -375,7 +409,7 @@ class ClassSessionServiceTest {
 
             when(classSessionRepository.findAll(pageable)).thenReturn(empty);
 
-            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(null, pageable);
+            PageResponse<ClassSessionResponse> result = classSessionService.listSessions(null, null, pageable);
 
             assertThat(result.content()).isEmpty();
             assertThat(result.totalElements()).isZero();
