@@ -312,9 +312,12 @@ Concrete scheduled occurrences of a class type.
 ### GET /class-sessions — Query params
 | Param | Type | Description |
 |-------|------|-------------|
+| `gymId` | Long | Filter by gym (use the user's subscribed gym to show relevant classes) |
 | `classTypeId` | Long | Filter by class type |
 | `page` | int | |
 | `size` | int | |
+
+Both params are optional and combinable. Omitting both returns all sessions across all gyms.
 
 ### GET /class-sessions — Response 200
 ```json

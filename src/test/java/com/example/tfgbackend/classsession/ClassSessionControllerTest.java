@@ -277,13 +277,38 @@ class ClassSessionControllerTest {
             PageResponse<ClassSessionResponse> page = new PageResponse<>(
                     List.of(sessionResponse(100L)), 0, 10, 1L, 1, false);
 
-            when(classSessionService.listSessions(any(), any())).thenReturn(page);
+            when(classSessionService.listSessions(any(), any(), any())).thenReturn(page);
 
             mvc.perform(get(BASE).with(authentication(customerAuth())))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content[0].id").value(100))
                     .andExpect(jsonPath("$.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("gymId param forwarded to service")
+        void listSessions_GymIdParam_ForwardedToService() throws Exception {
+            PageResponse<ClassSessionResponse> page = new PageResponse<>(
+                    List.of(sessionResponse(100L)), 0, 10, 1L, 1, false);
+
+            when(classSessionService.listSessions(eq(null), eq(5L), any())).thenReturn(page);
+
+            mvc.perform(get(BASE).param("gymId", "5").with(authentication(customerAuth())))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("classTypeId + gymId params both forwarded to service")
+        void listSessions_BothParams_ForwardedToService() throws Exception {
+            PageResponse<ClassSessionResponse> page = new PageResponse<>(
+                    List.of(sessionResponse(100L)), 0, 10, 1L, 1, false);
+
+            when(classSessionService.listSessions(eq(10L), eq(5L), any())).thenReturn(page);
+
+            mvc.perform(get(BASE).param("classTypeId", "10").param("gymId", "5")
+                            .with(authentication(customerAuth())))
+                    .andExpect(status().isOk());
         }
 
         @Test

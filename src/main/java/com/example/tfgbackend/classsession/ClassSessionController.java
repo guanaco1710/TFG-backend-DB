@@ -54,8 +54,9 @@ public class ClassSessionController {
     @GetMapping
     public ResponseEntity<PageResponse<ClassSessionResponse>> listSessions(
             @RequestParam(required = false) Long classTypeId,
+            @RequestParam(required = false) Long gymId,
             Pageable pageable) {
-        return ResponseEntity.ok(classSessionService.listSessions(classTypeId, pageable));
+        return ResponseEntity.ok(classSessionService.listSessions(classTypeId, gymId, pageable));
     }
 
     @PutMapping("/{id}")
