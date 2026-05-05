@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -46,8 +46,8 @@ public class ClassSessionController {
 
     @GetMapping("/schedule")
     public ResponseEntity<List<ClassSessionResponse>> getSchedule(
-            @RequestParam @NotNull LocalDateTime from,
-            @RequestParam @NotNull LocalDateTime to) {
+            @RequestParam @NotNull OffsetDateTime from,
+            @RequestParam @NotNull OffsetDateTime to) {
         return ResponseEntity.ok(classSessionService.getSchedule(from, to));
     }
 

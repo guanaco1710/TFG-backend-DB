@@ -27,7 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -84,7 +84,7 @@ public class ClassSessionService {
         return toResponse(session);
     }
 
-    public List<ClassSessionResponse> getSchedule(LocalDateTime from, LocalDateTime to) {
+    public List<ClassSessionResponse> getSchedule(OffsetDateTime from, OffsetDateTime to) {
         return classSessionRepository.findSchedule(from, to, SessionStatus.SCHEDULED)
                 .stream()
                 .map(this::toResponse)

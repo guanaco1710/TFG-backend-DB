@@ -33,7 +33,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,7 +90,7 @@ class NotificationServiceTest {
 
         // Session starts in 25 hours → REMINDER should be at sessionStart - 24h
         futureSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusHours(25))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusHours(25))
                 .durationMinutes(45)
                 .maxCapacity(10)
                 .room("1A")
@@ -140,7 +141,7 @@ class NotificationServiceTest {
         void createBookingConfirmed_FarFutureSession_ReminderScheduledAt24HBefore() {
             // Session 48 hours from now → reminder at 48-24 = 24h from now
             ClassSession farSession = ClassSession.builder()
-                    .startTime(LocalDateTime.now().plusHours(48))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusHours(48))
                     .durationMinutes(45)
                     .maxCapacity(10)
                     .room("2B")
@@ -168,7 +169,6 @@ class NotificationServiceTest {
             // Far session starts in 48h; reminder at 48-24 = 24h from now
             Instant expectedReminderAt = farSession.getStartTime()
                     .minusHours(24)
-                    .atZone(java.time.ZoneId.systemDefault())
                     .toInstant();
             assertThat(reminder.getScheduledAt())
                     .isCloseTo(expectedReminderAt, within(5, java.time.temporal.ChronoUnit.SECONDS));
@@ -179,7 +179,7 @@ class NotificationServiceTest {
         void createBookingConfirmed_ImmineentSession_ReminderScheduledAtNow() {
             // Session starts in 2 hours → sessionStart - 24h is in the past → use now
             ClassSession soonSession = ClassSession.builder()
-                    .startTime(LocalDateTime.now().plusHours(2))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusHours(2))
                     .durationMinutes(45)
                     .maxCapacity(10)
                     .room("3C")

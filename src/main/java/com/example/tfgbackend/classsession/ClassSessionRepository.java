@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Repository
@@ -28,8 +28,8 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
              ORDER BY cs.startTime ASC
             """)
     List<ClassSession> findSchedule(
-            @Param("from")   LocalDateTime from,
-            @Param("to")     LocalDateTime to,
+            @Param("from")   OffsetDateTime from,
+            @Param("to")     OffsetDateTime to,
             @Param("status") SessionStatus status);
 
     /** Paginated list — optional filter by classType. */
@@ -46,7 +46,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 
     /** Count bookable (SCHEDULED) future sessions for a class type. */
     long countByClassTypeIdAndStatusAndStartTimeAfter(
-            Long classTypeId, SessionStatus status, LocalDateTime after);
+            Long classTypeId, SessionStatus status, OffsetDateTime after);
 
     /** Guard for ClassType hard-delete: true if any session references this type. */
     boolean existsByClassTypeId(Long classTypeId);

@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * A concrete scheduled occurrence of a {@link ClassType}.
@@ -30,10 +30,8 @@ import java.time.LocalDateTime;
  * {@link BaseEntity}.  The service layer must catch {@code ObjectOptimisticLockingFailureException}
  * and retry or surface a "class is full" error to the caller.
  *
- * <p>{@code startTime} is stored as {@code TIMESTAMPTZ} in Postgres and mapped to
- * {@link LocalDateTime} here because it represents the wall-clock time of the class
- * in the gym's local timezone.  The application must ensure the timezone is applied
- * consistently (e.g. via {@code @PostConstruct} setting {@code TimeZone.setDefault}).
+ * <p>{@code startTime} maps to the {@code TIMESTAMPTZ} column in Postgres via
+ * {@link OffsetDateTime}, preserving the UTC offset in the JSON response.
  */
 @Entity
 @Table(
@@ -50,9 +48,8 @@ import java.time.LocalDateTime;
 @Builder
 public class ClassSession extends BaseEntity {
 
-    /** Wall-clock start time of the class in the gym's local timezone. */
     @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
 
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;

@@ -47,7 +47,8 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -104,21 +105,21 @@ class BookingServiceTest {
         setId(gymFixture, 5L);
 
         scheduledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45).maxCapacity(10).room("1A")
                 .status(SessionStatus.SCHEDULED)
                 .classType(spinning).gym(gymFixture).build();
         setId(scheduledSession, 100L);
 
         cancelledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(45).maxCapacity(10).room("2B")
                 .status(SessionStatus.CANCELLED)
                 .classType(spinning).gym(gymFixture).build();
         setId(cancelledSession, 101L);
 
         fullSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(3))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(3))
                 .durationMinutes(45).maxCapacity(2).room("3C")
                 .status(SessionStatus.SCHEDULED)
                 .classType(spinning).gym(gymFixture).build();
@@ -260,7 +261,7 @@ class BookingServiceTest {
         @DisplayName("session with null gym returns null gymName in response")
         void createBooking_SessionWithNullGym_ReturnsNullGymName() {
             ClassSession noGymSession = ClassSession.builder()
-                    .startTime(LocalDateTime.now().plusDays(1))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                     .durationMinutes(45).maxCapacity(10).room("1A")
                     .status(SessionStatus.SCHEDULED)
                     .classType(spinning).gym(null).build();
@@ -459,7 +460,7 @@ class BookingServiceTest {
         @DisplayName("session already started: cancels but does not decrement class credit")
         void cancelBooking_SessionAlreadyStarted_DoesNotDecrementClassCredit() {
             ClassSession pastSession = ClassSession.builder()
-                    .startTime(LocalDateTime.now().minusHours(1))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusHours(1))
                     .durationMinutes(45).maxCapacity(10).room("1A")
                     .status(SessionStatus.SCHEDULED)
                     .classType(spinning).gym(gymFixture).build();
@@ -771,7 +772,7 @@ class BookingServiceTest {
         @DisplayName("session with null gym returns null gymName in waitlist response")
         void joinWaitlist_SessionWithNullGym_ReturnsNullGymName() {
             ClassSession noGymSession = ClassSession.builder()
-                    .startTime(LocalDateTime.now().plusDays(1))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                     .durationMinutes(45).maxCapacity(10).room("1A")
                     .status(SessionStatus.SCHEDULED)
                     .classType(spinning).gym(null).build();

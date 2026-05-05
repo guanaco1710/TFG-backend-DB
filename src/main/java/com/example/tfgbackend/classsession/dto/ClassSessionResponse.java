@@ -2,14 +2,14 @@ package com.example.tfgbackend.classsession.dto;
 
 import com.example.tfgbackend.enums.SessionStatus;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record ClassSessionResponse(
         Long id,
         ClassTypeSummary classType,
         GymSummary gym,
         InstructorSummary instructor,
-        LocalDateTime startTime,
+        OffsetDateTime startTime,
         int durationMinutes,
         int maxCapacity,
         String room,

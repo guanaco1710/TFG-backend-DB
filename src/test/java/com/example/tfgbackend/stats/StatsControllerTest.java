@@ -23,7 +23,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -116,7 +117,7 @@ class StatsControllerTest {
         @DisplayName("authenticated customer receives 200 with paginated attendance history")
         void getAttendanceHistory_Authenticated_Returns200WithPage() throws Exception {
             ClassTypeInfo ct = new ClassTypeInfo(3L, "Spinning", "INTERMEDIATE");
-            ClassSessionInfo si = new ClassSessionInfo(88L, LocalDateTime.now().minusDays(1), 45, "Sala A", ct);
+            ClassSessionInfo si = new ClassSessionInfo(88L, OffsetDateTime.now(ZoneOffset.UTC).minusDays(1), 45, "Sala A", ct);
             AttendanceHistoryEntry entry = new AttendanceHistoryEntry(201L, Instant.now(), AttendanceStatus.ATTENDED, si);
             PageResponse<AttendanceHistoryEntry> page = new PageResponse<>(List.of(entry), 0, 20, 1L, 1, false);
 

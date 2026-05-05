@@ -31,7 +31,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,7 +78,7 @@ class ClassSessionServiceTest {
         setId(instructor, 3L);
 
         scheduledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45)
                 .maxCapacity(20)
                 .room("A1")
@@ -89,7 +90,7 @@ class ClassSessionServiceTest {
         setId(scheduledSession, 100L);
 
         cancelledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(60)
                 .maxCapacity(15)
                 .room("B2")
@@ -114,7 +115,7 @@ class ClassSessionServiceTest {
         void createSession_ValidRequest_ReturnsClassSessionResponse() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 3L,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -152,7 +153,7 @@ class ClassSessionServiceTest {
         void createSession_ClassTypeNotFound_ThrowsClassTypeNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     999L, null, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -169,7 +170,7 @@ class ClassSessionServiceTest {
         void createSession_GymIdProvidedButNotFound_ThrowsGymNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 999L, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -187,7 +188,7 @@ class ClassSessionServiceTest {
         void createSession_InstructorIdProvidedButNotFound_ThrowsInstructorNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 999L,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -206,7 +207,7 @@ class ClassSessionServiceTest {
         void createSession_InstructorIdProvidedButUserNotInstructor_ThrowsInstructorNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 999L,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
             User customer = User.builder().name("Alice").email("alice@test.com")
@@ -227,7 +228,7 @@ class ClassSessionServiceTest {
         void createSession_NullGymAndInstructor_SavesWithoutGymOrInstructor() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, null, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -295,8 +296,8 @@ class ClassSessionServiceTest {
         @Test
         @DisplayName("returns mapped list of sessions in range")
         void getSchedule_SessionsInRange_ReturnsMappedList() {
-            LocalDateTime from = LocalDateTime.now();
-            LocalDateTime to = from.plusDays(7);
+            OffsetDateTime from = OffsetDateTime.now(ZoneOffset.UTC);
+            OffsetDateTime to = from.plusDays(7);
 
             when(classSessionRepository.findSchedule(from, to, SessionStatus.SCHEDULED))
                     .thenReturn(List.of(scheduledSession));
@@ -313,8 +314,8 @@ class ClassSessionServiceTest {
         @Test
         @DisplayName("returns empty list when no sessions in range")
         void getSchedule_NoSessions_ReturnsEmptyList() {
-            LocalDateTime from = LocalDateTime.now();
-            LocalDateTime to = from.plusDays(7);
+            OffsetDateTime from = OffsetDateTime.now(ZoneOffset.UTC);
+            OffsetDateTime to = from.plusDays(7);
 
             when(classSessionRepository.findSchedule(from, to, SessionStatus.SCHEDULED))
                     .thenReturn(List.of());
@@ -429,7 +430,7 @@ class ClassSessionServiceTest {
         void updateSession_ValidRequest_ReturnsUpdatedResponse() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 3L,
-                    LocalDateTime.now().plusDays(3),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(3),
                     90, 30, "C3"
             );
 
@@ -454,7 +455,7 @@ class ClassSessionServiceTest {
         void updateSession_SessionNotFound_ThrowsSessionNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, null, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -471,7 +472,7 @@ class ClassSessionServiceTest {
         void updateSession_CancelledSession_ThrowsSessionNotBookableException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, null, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -488,7 +489,7 @@ class ClassSessionServiceTest {
         void updateSession_ClassTypeNotFound_ThrowsClassTypeNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     999L, null, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -506,7 +507,7 @@ class ClassSessionServiceTest {
         void updateSession_NullGymAndInstructor_SavesWithoutGymOrInstructor() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, null, null,
-                    LocalDateTime.now().plusDays(3),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(3),
                     60, 25, "D4"
             );
 
@@ -526,7 +527,7 @@ class ClassSessionServiceTest {
         void updateSession_GymIdProvidedButNotFound_ThrowsGymNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 999L, null,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 
@@ -545,7 +546,7 @@ class ClassSessionServiceTest {
         void updateSession_InstructorIdProvidedButUserNotInstructor_ThrowsInstructorNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 999L,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
             User customer = User.builder().name("Alice").email("alice@test.com")
@@ -567,7 +568,7 @@ class ClassSessionServiceTest {
         void updateSession_InstructorIdProvidedButNotFound_ThrowsInstructorNotFoundException() {
             ClassSessionRequest req = new ClassSessionRequest(
                     10L, 5L, 999L,
-                    LocalDateTime.now().plusDays(1),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                     45, 20, "A1"
             );
 

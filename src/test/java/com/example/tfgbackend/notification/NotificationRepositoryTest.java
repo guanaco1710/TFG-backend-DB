@@ -16,7 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +54,7 @@ class NotificationRepositoryTest extends AbstractRepositoryTest {
                 .build());
 
         session = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45)
                 .maxCapacity(10)
                 .room("1A")
@@ -61,7 +62,7 @@ class NotificationRepositoryTest extends AbstractRepositoryTest {
                 .build());
 
         otherSession = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(60)
                 .maxCapacity(15)
                 .room("2B")
