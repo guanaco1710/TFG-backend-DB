@@ -259,19 +259,28 @@ class BookingControllerTest {
     class CancelBooking {
 
         @Test
-        @DisplayName("customer cancels own booking returns 204")
-        void cancelBooking_OwnerCancels_Returns204() throws Exception {
+        @DisplayName("customer cancels own booking returns 200 with full booking")
+        void cancelBooking_OwnerCancels_Returns200WithBooking() throws Exception {
+            BookingResponse cancelled = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
+            when(bookingService.cancelBooking(eq(200L), any(), any())).thenReturn(cancelled);
+
             mvc.perform(post(BOOKINGS_BASE + "/200/cancel")
                             .with(authentication(customerAuth(1L))))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(200))
+                    .andExpect(jsonPath("$.status").value("CANCELLED"));
         }
 
         @Test
-        @DisplayName("admin cancels any booking returns 204")
-        void cancelBooking_AdminCancels_Returns204() throws Exception {
+        @DisplayName("admin cancels any booking returns 200 with full booking")
+        void cancelBooking_AdminCancels_Returns200WithBooking() throws Exception {
+            BookingResponse cancelled = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
+            when(bookingService.cancelBooking(eq(200L), any(), any())).thenReturn(cancelled);
+
             mvc.perform(post(BOOKINGS_BASE + "/200/cancel")
                             .with(authentication(adminAuth(99L))))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("CANCELLED"));
         }
 
         @Test
@@ -321,7 +330,7 @@ class BookingControllerTest {
             PageResponse<BookingResponse> page = new PageResponse<>(
                     List.of(br), 0, 10, 1L, 1, false);
 
-            when(bookingService.getMyBookings(eq(1L), any(), any())).thenReturn(page);
+            when(bookingService.getMyBookings(eq(1L), any(), any(), any(), any())).thenReturn(page);
 
             mvc.perform(get(BOOKINGS_BASE + "/me")
                             .with(authentication(customerAuth(1L))))
@@ -335,7 +344,7 @@ class BookingControllerTest {
         @DisplayName("status filter is forwarded to the service")
         void getMyBookings_WithStatusFilter_ForwardsFilterToService() throws Exception {
             PageResponse<BookingResponse> page = new PageResponse<>(List.of(), 0, 10, 0L, 0, false);
-            when(bookingService.getMyBookings(eq(1L), eq(BookingStatus.CANCELLED), any())).thenReturn(page);
+            when(bookingService.getMyBookings(eq(1L), eq(BookingStatus.CANCELLED), any(), any(), any())).thenReturn(page);
 
             mvc.perform(get(BOOKINGS_BASE + "/me")
                             .param("status", "CANCELLED")
