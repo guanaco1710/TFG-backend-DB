@@ -343,6 +343,30 @@ class SubscriptionServiceTest {
 
             assertThat(subscriptionService.getMySubscriptions(1L)).isEmpty();
         }
+
+        @Test
+        @DisplayName("subscription with cancelledAt set and status ACTIVE — pendingCancellation is true")
+        void getMySubscriptions_CancellationPending_ReturnsPendingCancellationTrue() {
+            activeSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findByUserId(1L)).thenReturn(List.of(activeSubscription));
+
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
+
+            assertThat(response.pendingCancellation()).isTrue();
+            assertThat(response.cancelledAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("subscription with cancelledAt set and status CANCELLED — pendingCancellation is false")
+        void getMySubscriptions_AlreadyCancelledWithCancelledAt_ReturnsPendingCancellationFalse() {
+            cancelledSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findByUserId(1L)).thenReturn(List.of(cancelledSubscription));
+
+            SubscriptionResponse response = subscriptionService.getMySubscriptions(1L).get(0);
+
+            assertThat(response.pendingCancellation()).isFalse();
+            assertThat(response.cancelledAt()).isNotNull();
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -482,6 +506,18 @@ class SubscriptionServiceTest {
 
             assertThatThrownBy(() -> subscriptionService.renewSubscription(999L))
                     .isInstanceOf(SubscriptionNotFoundException.class);
+
+            verify(subscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("subscription has cancelledAt set — throws SubscriptionCancellationPendingException")
+        void renewSubscription_CancellationPending_ThrowsSubscriptionCancellationPendingException() {
+            activeSubscription.setCancelledAt(java.time.Instant.now().minusSeconds(60));
+            when(subscriptionRepository.findById(100L)).thenReturn(Optional.of(activeSubscription));
+
+            assertThatThrownBy(() -> subscriptionService.renewSubscription(100L))
+                    .isInstanceOf(com.example.tfgbackend.common.exception.SubscriptionCancellationPendingException.class);
 
             verify(subscriptionRepository, never()).save(any());
         }
