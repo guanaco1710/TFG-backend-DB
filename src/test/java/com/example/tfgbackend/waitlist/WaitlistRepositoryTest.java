@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ class WaitlistRepositoryTest extends AbstractRepositoryTest {
                 .name("Spinning").description("Cycling").level("INTERMEDIATE").build());
         session = em.persistAndFlush(ClassSession.builder()
                 .classType(spinning)
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45).maxCapacity(1).room("1A").build());
         alice = em.persistAndFlush(User.builder()
                 .name("Alice").email("alice@test.com")
@@ -97,7 +98,7 @@ class WaitlistRepositoryTest extends AbstractRepositoryTest {
                 .name("Yoga").description("Flex").level("BASIC").build());
         ClassSession session2 = em.persistAndFlush(ClassSession.builder()
                 .classType(yoga)
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(60).maxCapacity(1).room("2B").build());
 
         persistEntry(alice, session, 1);

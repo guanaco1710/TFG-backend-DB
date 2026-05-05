@@ -29,7 +29,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,28 +79,28 @@ class AttendanceServiceTest {
         setId(spinning, 10L);
 
         finishedSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().minusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusDays(1))
                 .durationMinutes(45).maxCapacity(10).room("1A")
                 .status(SessionStatus.FINISHED)
                 .classType(spinning).build();
         setId(finishedSession, 100L);
 
         activeSession = ClassSession.builder()
-                .startTime(LocalDateTime.now())
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC))
                 .durationMinutes(45).maxCapacity(10).room("1B")
                 .status(SessionStatus.ACTIVE)
                 .classType(spinning).build();
         setId(activeSession, 101L);
 
         scheduledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45).maxCapacity(10).room("2A")
                 .status(SessionStatus.SCHEDULED)
                 .classType(spinning).build();
         setId(scheduledSession, 102L);
 
         cancelledSession = ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(45).maxCapacity(10).room("2B")
                 .status(SessionStatus.CANCELLED)
                 .classType(spinning).build();

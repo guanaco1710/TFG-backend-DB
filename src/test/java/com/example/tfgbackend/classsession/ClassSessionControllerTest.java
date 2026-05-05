@@ -27,7 +27,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -64,8 +65,8 @@ class ClassSessionControllerTest {
 
     private static final String BASE = "/api/v1/class-sessions";
 
-    // Pre-formatted ISO datetime string used in request bodies
-    private static final String FUTURE_DT = "2030-06-01T10:00:00";
+    // Pre-formatted ISO datetime string used in request bodies (offset required for OffsetDateTime)
+    private static final String FUTURE_DT = "2030-06-01T10:00:00Z";
 
     // ---------------------------------------------------------------------------
     // Auth helpers
@@ -93,7 +94,7 @@ class ClassSessionControllerTest {
                 new ClassTypeSummary(10L, "Spinning"),
                 new GymSummary(5L, "Downtown Gym", "Madrid"),
                 new InstructorSummary(3L, "John Doe", "Spinning"),
-                LocalDateTime.now().plusDays(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
                 45, 20, "A1",
                 SessionStatus.SCHEDULED,
                 3, 17
@@ -144,7 +145,7 @@ class ClassSessionControllerTest {
         @DisplayName("missing classTypeId returns 400")
         void createSession_MissingClassTypeId_Returns400() throws Exception {
             String body = """
-                    {"startTime": "2030-01-01T10:00:00", "durationMinutes": 45, "maxCapacity": 20, "room": "A1"}
+                    {"startTime": "2030-01-01T10:00:00Z", "durationMinutes": 45, "maxCapacity": 20, "room": "A1"}
                     """;
 
             mvc.perform(post(BASE)
@@ -238,8 +239,8 @@ class ClassSessionControllerTest {
         @Test
         @DisplayName("authenticated user retrieves schedule — returns 200 with list")
         void getSchedule_AuthenticatedUser_Returns200WithList() throws Exception {
-            LocalDateTime from = LocalDateTime.now();
-            LocalDateTime to = from.plusDays(7);
+            OffsetDateTime from = OffsetDateTime.now(ZoneOffset.UTC);
+            OffsetDateTime to = from.plusDays(7);
 
             when(classSessionService.getSchedule(any(), any()))
                     .thenReturn(List.of(sessionResponse(100L)));
@@ -257,8 +258,8 @@ class ClassSessionControllerTest {
         @DisplayName("unauthenticated request — returns 401")
         void getSchedule_Unauthenticated_Returns401() throws Exception {
             mvc.perform(get(BASE + "/schedule")
-                            .param("from", LocalDateTime.now().toString())
-                            .param("to", LocalDateTime.now().plusDays(7).toString()))
+                            .param("from", OffsetDateTime.now(ZoneOffset.UTC).toString())
+                            .param("to", OffsetDateTime.now(ZoneOffset.UTC).plusDays(7).toString()))
                     .andExpect(status().isUnauthorized());
         }
     }

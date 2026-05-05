@@ -18,7 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,17 +53,17 @@ class AttendanceRepositoryStatsTest extends AbstractRepositoryTest {
                 .name("Yoga").description("Yoga class").level("BASIC").build());
 
         session1 = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().minusDays(3))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusDays(3))
                 .durationMinutes(45).maxCapacity(10).room("1A")
                 .classType(spinning).build());
 
         session2 = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().minusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusDays(2))
                 .durationMinutes(60).maxCapacity(10).room("2B")
                 .classType(spinning).build());
 
         session3 = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().minusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusDays(1))
                 .durationMinutes(30).maxCapacity(10).room("3C")
                 .classType(yoga).build());
 

@@ -14,7 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,12 +36,12 @@ class BookingRepositoryTest extends AbstractRepositoryTest {
                 .name("Spinning").description("Cycling class").level("INTERMEDIATE").build());
 
         session1 = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(1))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                 .durationMinutes(45).maxCapacity(12).room("1A")
                 .classType(spinning).build());
 
         session2 = em.persistAndFlush(ClassSession.builder()
-                .startTime(LocalDateTime.now().plusDays(2))
+                .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(2))
                 .durationMinutes(60).maxCapacity(10).room("2B")
                 .classType(spinning).build());
 

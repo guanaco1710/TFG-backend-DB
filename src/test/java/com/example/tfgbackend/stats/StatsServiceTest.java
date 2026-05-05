@@ -29,8 +29,9 @@ import org.springframework.data.domain.PageRequest;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -231,7 +232,7 @@ class StatsServiceTest {
             setId(classType, 10L);
 
             ClassSession session = ClassSession.builder()
-                    .startTime(LocalDateTime.now().minusDays(1))
+                    .startTime(OffsetDateTime.now(ZoneOffset.UTC).minusDays(1))
                     .durationMinutes(60)
                     .room("Room B")
                     .classType(classType)

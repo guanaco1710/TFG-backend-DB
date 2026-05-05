@@ -39,7 +39,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -79,7 +80,7 @@ class BookingControllerTest {
     private static final String SESSIONS_BASE = "/api/v1/class-sessions";
 
     private static final ClassSessionSummary SESSION_SUMMARY =
-            new ClassSessionSummary(100L, "Spinning", LocalDateTime.now().plusDays(1), "Downtown Gym");
+            new ClassSessionSummary(100L, "Spinning", OffsetDateTime.now(ZoneOffset.UTC).plusDays(1), "Downtown Gym");
 
     // ---------------------------------------------------------------------------
     // Authentication helpers

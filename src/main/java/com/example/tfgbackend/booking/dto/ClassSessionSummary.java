@@ -1,10 +1,10 @@
 package com.example.tfgbackend.booking.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record ClassSessionSummary(
         Long id,
         String classTypeName,
-        LocalDateTime startTime,
+        OffsetDateTime startTime,
         String gymName
 ) {}

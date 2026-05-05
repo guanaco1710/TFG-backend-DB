@@ -114,7 +114,7 @@ public class BookingService {
         notificationService.createBookingCancelled(booking.getUser().getId(), booking.getSession());
 
         // Refund the class credit if the session hasn't started yet
-        if (booking.getSession().getStartTime().isAfter(java.time.LocalDateTime.now())) {
+        if (booking.getSession().getStartTime().isAfter(java.time.OffsetDateTime.now())) {
             subscriptionRepository.findByUserIdAndStatus(booking.getUser().getId(), SubscriptionStatus.ACTIVE)
                     .ifPresent(s -> s.setClassesUsedThisMonth(Math.max(0, s.getClassesUsedThisMonth() - 1)));
         }

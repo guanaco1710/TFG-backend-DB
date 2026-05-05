@@ -12,7 +12,8 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +39,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
     }
 
     private ClassSession persistSession(ClassType classType, User instr,
-                                        LocalDateTime start, SessionStatus status) {
+                                        OffsetDateTime start, SessionStatus status) {
         return em.persistAndFlush(ClassSession.builder()
                 .classType(classType).instructor(instr)
                 .startTime(start).durationMinutes(45).maxCapacity(12).room("1A")
@@ -47,7 +48,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void findSchedule_SessionsInWindow_ReturnsSortedByStartTime() {
-        LocalDateTime windowStart = LocalDateTime.now().plusDays(1);
+        OffsetDateTime windowStart = OffsetDateTime.now(ZoneOffset.UTC).plusDays(1);
         persistSession(spinning, instructor, windowStart.plusHours(2), SessionStatus.SCHEDULED);
         persistSession(yoga, null, windowStart.plusHours(1), SessionStatus.SCHEDULED);
         persistSession(spinning, null, windowStart.minusDays(5), SessionStatus.SCHEDULED); // outside window
@@ -62,7 +63,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void findSchedule_NoSessionsInWindow_ReturnsEmpty() {
-        LocalDateTime pastWindow = LocalDateTime.now().minusDays(20);
+        OffsetDateTime pastWindow = OffsetDateTime.now(ZoneOffset.UTC).minusDays(20);
         List<ClassSession> schedule = repository.findSchedule(
                 pastWindow, pastWindow.plusDays(1), SessionStatus.SCHEDULED);
         assertThat(schedule).isEmpty();
@@ -70,7 +71,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void findSchedule_WrongStatus_ExcludesNonMatchingStatus() {
-        LocalDateTime windowStart = LocalDateTime.now().plusDays(1);
+        OffsetDateTime windowStart = OffsetDateTime.now(ZoneOffset.UTC).plusDays(1);
         persistSession(spinning, null, windowStart.plusHours(1), SessionStatus.CANCELLED);
         em.clear();
 
@@ -82,9 +83,9 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void findByClassTypeId_MatchingType_ReturnsPaged() {
-        persistSession(spinning, null, LocalDateTime.now().plusDays(1), SessionStatus.SCHEDULED);
-        persistSession(spinning, null, LocalDateTime.now().plusDays(2), SessionStatus.SCHEDULED);
-        persistSession(yoga, null, LocalDateTime.now().plusDays(1), SessionStatus.SCHEDULED);
+        persistSession(spinning, null, OffsetDateTime.now(ZoneOffset.UTC).plusDays(1), SessionStatus.SCHEDULED);
+        persistSession(spinning, null, OffsetDateTime.now(ZoneOffset.UTC).plusDays(2), SessionStatus.SCHEDULED);
+        persistSession(yoga, null, OffsetDateTime.now(ZoneOffset.UTC).plusDays(1), SessionStatus.SCHEDULED);
         em.clear();
 
         Page<ClassSession> page = repository.findByClassTypeId(spinning.getId(), PageRequest.of(0, 10));
@@ -95,8 +96,8 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void findByInstructorId_MatchingInstructor_ReturnsPaged() {
-        persistSession(spinning, instructor, LocalDateTime.now().plusDays(1), SessionStatus.SCHEDULED);
-        persistSession(yoga, null, LocalDateTime.now().plusDays(2), SessionStatus.SCHEDULED);
+        persistSession(spinning, instructor, OffsetDateTime.now(ZoneOffset.UTC).plusDays(1), SessionStatus.SCHEDULED);
+        persistSession(yoga, null, OffsetDateTime.now(ZoneOffset.UTC).plusDays(2), SessionStatus.SCHEDULED);
         em.clear();
 
         Page<ClassSession> page = repository.findByInstructorId(instructor.getId(), PageRequest.of(0, 10));
@@ -107,7 +108,7 @@ class ClassSessionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     void countByClassTypeIdAndStatusAndStartTimeAfter_FutureSessions_ReturnsCorrectCount() {
-        LocalDateTime now = LocalDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         persistSession(spinning, null, now.plusDays(1), SessionStatus.SCHEDULED);
         persistSession(spinning, null, now.plusDays(2), SessionStatus.SCHEDULED);
         persistSession(spinning, null, now.minusDays(1), SessionStatus.FINISHED); // past, wrong status

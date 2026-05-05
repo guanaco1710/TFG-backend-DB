@@ -65,7 +65,7 @@ class RatingServiceTest {
     @BeforeEach
     void setUp() {
         session = ClassSession.builder()
-                .startTime(java.time.LocalDateTime.now().minusDays(1))
+                .startTime(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(1))
                 .durationMinutes(45)
                 .maxCapacity(12)
                 .room("1A")
