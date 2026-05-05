@@ -164,8 +164,8 @@ class BookingServiceTest {
             assertThat(response.id()).isEqualTo(200L);
             assertThat(response.status()).isEqualTo(BookingStatus.CONFIRMED);
             assertThat(response.classSession().id()).isEqualTo(100L);
-            assertThat(response.classSession().classTypeName()).isEqualTo("Spinning");
-            assertThat(response.classSession().gymName()).isEqualTo("Downtown Gym");
+            assertThat(response.classSession().classType().name()).isEqualTo("Spinning");
+            assertThat(response.classSession().gym().name()).isEqualTo("Downtown Gym");
 
             ArgumentCaptor<Booking> captor = ArgumentCaptor.forClass(Booking.class);
             verify(bookingRepository).save(captor.capture());
@@ -259,8 +259,8 @@ class BookingServiceTest {
         }
 
         @Test
-        @DisplayName("session with null gym returns null gymName in response")
-        void createBooking_SessionWithNullGym_ReturnsNullGymName() {
+        @DisplayName("session with null gym returns null gym in response")
+        void createBooking_SessionWithNullGym_ReturnsNullGym() {
             ClassSession noGymSession = ClassSession.builder()
                     .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                     .durationMinutes(45).maxCapacity(10).room("1A")
@@ -280,7 +280,7 @@ class BookingServiceTest {
 
             BookingResponse response = bookingService.createBooking(1L, 200L);
 
-            assertThat(response.classSession().gymName()).isNull();
+            assertThat(response.classSession().gym()).isNull();
         }
 
         @Test
@@ -782,8 +782,8 @@ class BookingServiceTest {
         }
 
         @Test
-        @DisplayName("session with null gym returns null gymName in waitlist response")
-        void joinWaitlist_SessionWithNullGym_ReturnsNullGymName() {
+        @DisplayName("session with null gym returns null gym in waitlist response")
+        void joinWaitlist_SessionWithNullGym_ReturnsNullGym() {
             ClassSession noGymSession = ClassSession.builder()
                     .startTime(OffsetDateTime.now(ZoneOffset.UTC).plusDays(1))
                     .durationMinutes(45).maxCapacity(10).room("1A")
@@ -804,7 +804,7 @@ class BookingServiceTest {
 
             WaitlistEntryResponse response = bookingService.joinWaitlist(1L, 200L);
 
-            assertThat(response.classSession().gymName()).isNull();
+            assertThat(response.classSession().gym()).isNull();
         }
     }
 

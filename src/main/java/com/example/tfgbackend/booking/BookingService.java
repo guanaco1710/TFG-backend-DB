@@ -2,6 +2,8 @@ package com.example.tfgbackend.booking;
 
 import com.example.tfgbackend.booking.dto.BookingResponse;
 import com.example.tfgbackend.booking.dto.ClassSessionSummary;
+import com.example.tfgbackend.booking.dto.ClassTypeRef;
+import com.example.tfgbackend.booking.dto.GymRef;
 import com.example.tfgbackend.booking.dto.RosterEntryResponse;
 import com.example.tfgbackend.classsession.ClassSession;
 import com.example.tfgbackend.classsession.ClassSessionRepository;
@@ -222,24 +224,22 @@ public class BookingService {
     }
 
     private BookingResponse toBookingResponse(Booking b) {
-        ClassSession s = b.getSession();
-        ClassSessionSummary summary = new ClassSessionSummary(
-                s.getId(),
-                s.getClassType().getName(),
-                s.getStartTime(),
-                s.getGym() != null ? s.getGym().getName() : null
-        );
-        return new BookingResponse(b.getId(), summary, b.getStatus(), b.getBookedAt());
+        return new BookingResponse(b.getId(), toSessionSummary(b.getSession()), b.getStatus(), b.getBookedAt());
     }
 
     private WaitlistEntryResponse toWaitlistResponse(WaitlistEntry e) {
-        ClassSession s = e.getSession();
-        ClassSessionSummary summary = new ClassSessionSummary(
-                s.getId(),
+        return new WaitlistEntryResponse(e.getId(), toSessionSummary(e.getSession()), e.getUser().getId(), e.getPosition(), e.getJoinedAt());
+    }
+
+    private ClassSessionSummary toSessionSummary(ClassSession s) {
+        ClassTypeRef classType = new ClassTypeRef(
+                s.getClassType().getId(),
                 s.getClassType().getName(),
-                s.getStartTime(),
-                s.getGym() != null ? s.getGym().getName() : null
+                s.getDurationMinutes()
         );
-        return new WaitlistEntryResponse(e.getId(), summary, e.getUser().getId(), e.getPosition(), e.getJoinedAt());
+        GymRef gym = s.getGym() != null
+                ? new GymRef(s.getGym().getId(), s.getGym().getName(), s.getGym().getCity())
+                : null;
+        return new ClassSessionSummary(s.getId(), classType, s.getStartTime(), gym);
     }
 }

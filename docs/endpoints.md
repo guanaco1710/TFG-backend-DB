@@ -307,7 +307,18 @@ Concrete scheduled occurrences of a class type.
 | `PUT` | `/class-sessions/{id}` | Update a session | `ADMIN` |
 | `POST` | `/class-sessions/{id}/cancel` | Cancel a session | `ADMIN` |
 
-> **Known issue for frontend:** `startTime` serialises as `LocalDateTime` with **no timezone** (e.g. `"2024-06-01T09:00:00"`). Parse it as the gym's local time until a backend fix lands.
+`startTime` is always ISO-8601 with UTC offset (e.g. `"2024-06-01T09:00:00Z"`).
+
+### Session status lifecycle
+
+| Status | Meaning |
+|--------|---------|
+| `SCHEDULED` | Future class, open for bookings |
+| `ACTIVE` | Class is currently in progress |
+| `CANCELLED` | Class was cancelled — all bookings voided |
+| `FINISHED` | Class has ended — attendance can be recorded |
+
+Transition: `SCHEDULED` → `ACTIVE` → `FINISHED` (happy path). `CANCELLED` is terminal from any state.
 
 ### GET /class-sessions — Query params
 | Param | Type | Description |
@@ -325,10 +336,10 @@ Both params are optional and combinable. Omitting both returns all sessions acro
   "content": [
     {
       "id": 1,
-      "classType": { "id": 1, "name": "Spinning 45min", "level": "INTERMEDIATE" },
-      "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
+      "classType": { "id": 1, "name": "Spinning 45min" },
+      "gym": { "id": 1, "name": "GymBook Central", "city": "Madrid" },
       "instructor": { "id": 2, "name": "Jane Doe", "specialty": "Cycling" },
-      "startTime": "2024-06-01T09:00:00",
+      "startTime": "2024-06-01T09:00:00Z",
       "durationMinutes": 45,
       "maxCapacity": 20,
       "room": "Studio A",
@@ -345,13 +356,11 @@ Both params are optional and combinable. Omitting both returns all sessions acro
 }
 ```
 
-`status` is one of `SCHEDULED`, `ACTIVE`, `CANCELLED`, `FINISHED`.
-
 ### GET /class-sessions/schedule — Query params
 | Param | Type | Description |
 |-------|------|-------------|
-| `from` | ISO datetime | Start of range (required) |
-| `to` | ISO datetime | End of range (required) |
+| `from` | ISO-8601 datetime with offset | Start of range (required), e.g. `2024-06-01T00:00:00Z` |
+| `to` | ISO-8601 datetime with offset | End of range (required), e.g. `2024-06-08T00:00:00Z` |
 
 Returns a flat `List` (no pagination). Same object shape as content items above.
 
@@ -361,7 +370,7 @@ Returns a flat `List` (no pagination). Same object shape as content items above.
   "classTypeId": 1,
   "gymId": 1,
   "instructorId": 2,
-  "startTime": "2024-06-01T09:00:00",
+  "startTime": "2024-06-01T09:00:00Z",
   "durationMinutes": 45,
   "maxCapacity": 20,
   "room": "Studio A"
@@ -392,9 +401,9 @@ Returns a flat `List` (no pagination). Same object shape as content items above.
   "id": 42,
   "classSession": {
     "id": 1,
-    "classTypeName": "Spinning 45min",
+    "classType": { "id": 1, "name": "Spinning 45min", "durationMinutes": 45 },
     "startTime": "2024-06-01T09:00:00Z",
-    "gymName": "Downtown Gym"
+    "gym": { "id": 5, "name": "Downtown Gym", "city": "Madrid" }
   },
   "status": "CONFIRMED",
   "bookedAt": "2024-05-20T10:00:00Z"
@@ -424,9 +433,9 @@ Returns the full updated booking object (same shape as the 201 response above, w
   "id": 42,
   "classSession": {
     "id": 1,
-    "classTypeName": "Spinning 45min",
+    "classType": { "id": 1, "name": "Spinning 45min", "durationMinutes": 45 },
     "startTime": "2024-06-01T09:00:00Z",
-    "gymName": "Downtown Gym"
+    "gym": { "id": 5, "name": "Downtown Gym", "city": "Madrid" }
   },
   "status": "CANCELLED",
   "bookedAt": "2024-05-20T10:00:00Z"
@@ -455,9 +464,9 @@ Returns the full updated booking object (same shape as the 201 response above, w
       "id": 42,
       "classSession": {
         "id": 1,
-        "classTypeName": "Spinning 45min",
+        "classType": { "id": 1, "name": "Spinning 45min", "durationMinutes": 45 },
         "startTime": "2024-06-01T09:00:00Z",
-        "gymName": "Downtown Gym"
+        "gym": { "id": 5, "name": "Downtown Gym", "city": "Madrid" }
       },
       "status": "CONFIRMED",
       "bookedAt": "2024-05-20T10:00:00Z"

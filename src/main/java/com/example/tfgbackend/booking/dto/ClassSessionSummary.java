@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 
 public record ClassSessionSummary(
         Long id,
-        String classTypeName,
+        ClassTypeRef classType,
         OffsetDateTime startTime,
-        String gymName
+        GymRef gym
 ) {}

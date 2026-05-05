@@ -4,6 +4,8 @@ import com.example.tfgbackend.auth.AuthenticatedUser;
 import com.example.tfgbackend.auth.JwtService;
 import com.example.tfgbackend.booking.dto.BookingResponse;
 import com.example.tfgbackend.booking.dto.ClassSessionSummary;
+import com.example.tfgbackend.booking.dto.ClassTypeRef;
+import com.example.tfgbackend.booking.dto.GymRef;
 import com.example.tfgbackend.booking.dto.CreateBookingRequest;
 import com.example.tfgbackend.booking.dto.RosterEntryResponse;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
@@ -80,7 +82,11 @@ class BookingControllerTest {
     private static final String SESSIONS_BASE = "/api/v1/class-sessions";
 
     private static final ClassSessionSummary SESSION_SUMMARY =
-            new ClassSessionSummary(100L, "Spinning", OffsetDateTime.now(ZoneOffset.UTC).plusDays(1), "Downtown Gym");
+            new ClassSessionSummary(
+                    100L,
+                    new ClassTypeRef(1L, "Spinning", 45),
+                    OffsetDateTime.now(ZoneOffset.UTC).plusDays(1),
+                    new GymRef(5L, "Downtown Gym", "Madrid"));
 
     // ---------------------------------------------------------------------------
     // Authentication helpers
