@@ -506,15 +506,16 @@ Plans are **global** — not tied to a specific gym. When subscribing, the chose
 
 ## Subscriptions
 
+A user can hold **one active subscription per gym**. Multiple gyms = multiple subscriptions.
+
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| `GET` | `/subscriptions/me` | Get own current subscription | `CUSTOMER` |
-| `POST` | `/subscriptions` | Subscribe to a membership plan | `CUSTOMER` |
-| `POST` | `/subscriptions/me/cancel` | Cancel own subscription (end of period) | `CUSTOMER` |
-| `GET` | `/subscriptions` | List all subscriptions (paginated) | `ADMIN` |
-| `GET` | `/subscriptions/{id}` | Get subscription by ID | `ADMIN` |
-| `POST` | `/subscriptions/{id}/cancel` | Admin cancel a subscription | `ADMIN` |
+| `GET` | `/subscriptions/me` | List own subscriptions (all gyms) | Any authenticated |
+| `POST` | `/subscriptions` | Subscribe to a plan at a gym | Any authenticated |
+| `POST` | `/subscriptions/{id}/cancel` | Cancel subscription (end of period) | Owner or `ADMIN` |
+| `POST` | `/subscriptions/{id}/upgrade` | Schedule plan upgrade for next billing cycle | Owner or `ADMIN` |
 | `POST` | `/subscriptions/{id}/renew` | Admin renew/reactivate a subscription | `ADMIN` |
+| `GET` | `/subscriptions` | List all subscriptions (paginated) | `ADMIN` |
 
 ### POST /subscriptions — Request
 ```json
@@ -523,34 +524,97 @@ Plans are **global** — not tied to a specific gym. When subscribing, the chose
   "gymId": 1
 }
 // Response 201 + Location: /api/v1/subscriptions/{id}
+// 409 if user already has an ACTIVE subscription for that gym
 ```
 
 ### GET /subscriptions/me — Response 200
 
-Always returns **one object** — the single active subscription for the authenticated user.  
-Returns 404 if the user has no active subscription.
+Always returns an **array** — all subscriptions for the authenticated user across all gyms.  
+Returns `[]` when the user has no subscriptions. HTTP 200 always (no 404).
 
 ```json
+[
+  {
+    "id": 7,
+    "plan": { "id": 2, "name": "Premium Monthly", "priceMonthly": 49.99 },
+    "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
+    "status": "ACTIVE",
+    "startDate": "2024-05-01",
+    "renewalDate": "2024-06-01",
+    "classesUsedThisMonth": 5,
+    "classesRemainingThisMonth": 7,
+    "pendingCancellation": false,
+    "cancelledAt": null,
+    "pendingPlan": null
+  }
+]
+```
+
+`status` is one of `ACTIVE`, `CANCELLED`, `EXPIRED`.  
+`classesRemainingThisMonth` is `null` when the plan grants unlimited classes.  
+`pendingPlan` is non-null when an upgrade has been scheduled for the next billing cycle.
+
+### POST /subscriptions/{id}/cancel — Response
+
+Soft-cancel: subscription stays `ACTIVE` until `renewalDate`, then the scheduler flips it to `CANCELLED`.
+
+```
+Response 204 No Content
+409 SubscriptionCancellationPending — already scheduled for cancellation
+409 SubscriptionNotActive — subscription is not ACTIVE
+404 SubscriptionNotFound
+403 if non-owner and not ADMIN
+```
+
+### POST /subscriptions/{id}/upgrade — Request
+
+Schedules a plan change that takes effect at the **next billing cycle** (on renewal), not immediately.
+
+```json
+{ "newMembershipPlanId": 3 }
+```
+
+```
+Response 200 — subscription object with pendingPlan populated
+404 SubscriptionNotFound
+409 SubscriptionNotActive — subscription is not ACTIVE
+409 MembershipPlanInactive — new plan is inactive
+403 if non-owner and not ADMIN
+```
+
+```json
+// Response 200 — example
 {
   "id": 7,
-  "plan": { "id": 2, "name": "Premium Monthly", "priceMonthly": 49.99 },
+  "plan": { "id": 2, "name": "Basic", "priceMonthly": 29.99 },
   "gym": { "id": 1, "name": "GymBook Central", "address": "Calle Mayor 1", "city": "Madrid" },
   "status": "ACTIVE",
   "startDate": "2024-05-01",
   "renewalDate": "2024-06-01",
   "classesUsedThisMonth": 5,
-  "classesRemainingThisMonth": 7
+  "classesRemainingThisMonth": 7,
+  "pendingCancellation": false,
+  "cancelledAt": null,
+  "pendingPlan": { "id": 3, "name": "Premium", "priceMonthly": 49.99 }
 }
 ```
 
-`status` is one of `ACTIVE`, `CANCELLED`, `EXPIRED`.  
-`classesRemainingThisMonth` is `null` when the plan grants unlimited classes.
+When `renewalDate` is reached, the scheduler applies `pendingPlan` as the new `plan` and clears `pendingPlan`.
+
+### POST /subscriptions/{id}/renew — Response (admin only)
+
+Forces an immediate renewal: advances `renewalDate` by `plan.durationMonths`, resets `classesUsedThisMonth` to 0, and applies `pendingPlan` if set.
+
+```
+Response 200 — updated subscription object
+404 SubscriptionNotFound
+409 SubscriptionCancellationPending — already scheduled for cancellation
+```
 
 ### GET /subscriptions — Query params (admin)
 | Param | Type | Description |
 |-------|------|-------------|
 | `userId` | Long | Filter by user |
-| `planId` | Long | Filter by plan |
 | `status` | `ACTIVE\|CANCELLED\|EXPIRED` | Filter by status |
 | `page` | int | |
 | `size` | int | |
@@ -567,7 +631,10 @@ Returns 404 if the user has no active subscription.
       "startDate": "2024-05-01",
       "renewalDate": "2024-06-01",
       "classesUsedThisMonth": 5,
-      "classesRemainingThisMonth": 7
+      "classesRemainingThisMonth": 7,
+      "pendingCancellation": false,
+      "cancelledAt": null,
+      "pendingPlan": null
     }
   ],
   "page": 0,
@@ -577,6 +644,29 @@ Returns 404 if the user has no active subscription.
   "hasMore": true
 }
 ```
+
+### Subscription business rules
+
+- One **ACTIVE** subscription per user per gym. Attempting a second → `409 SubscriptionAlreadyActive`.
+- Cancel is **soft**: `cancelledAt` is set, status stays `ACTIVE` until `renewalDate`. `pendingCancellation: true` signals this to clients.
+- Upgrade is **deferred**: `pendingPlan` is set; applied automatically on the next renewal.
+- A cancelled subscription (pending or confirmed) cannot be upgraded or re-cancelled.
+
+### SubscriptionResponse fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | Long | |
+| `plan` | `{id, name, priceMonthly}` | Current active plan |
+| `gym` | `{id, name, address, city}` | |
+| `status` | `ACTIVE\|CANCELLED\|EXPIRED` | |
+| `startDate` | ISO date | |
+| `renewalDate` | ISO date | Next billing / expiry date |
+| `classesUsedThisMonth` | int | |
+| `classesRemainingThisMonth` | int or null | `null` = unlimited plan |
+| `pendingCancellation` | boolean | `true` when `cancelledAt` is set and status is still `ACTIVE` |
+| `cancelledAt` | ISO instant or null | When the cancel was requested |
+| `pendingPlan` | `{id, name, priceMonthly}` or null | Plan queued for next billing cycle |
 
 ---
 

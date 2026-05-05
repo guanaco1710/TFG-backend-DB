@@ -15,5 +15,6 @@ public record SubscriptionResponse(
         int classesUsedThisMonth,
         Integer classesRemainingThisMonth,
         boolean pendingCancellation,
-        Instant cancelledAt
+        Instant cancelledAt,
+        MembershipPlanSummary pendingPlan
 ) {}

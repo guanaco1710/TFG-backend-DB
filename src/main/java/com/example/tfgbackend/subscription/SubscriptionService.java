@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,7 +54,7 @@ public class SubscriptionService {
             throw new MembershipPlanInactiveException(planId);
         }
 
-        subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+        subscriptionRepository.findByUserIdAndGymIdAndStatus(userId, gymId, SubscriptionStatus.ACTIVE)
                 .ifPresent(s -> { throw new SubscriptionAlreadyActiveException(userId); });
 
         LocalDate today = LocalDate.now();
@@ -70,9 +71,10 @@ public class SubscriptionService {
         return toResponse(subscriptionRepository.save(subscription));
     }
 
-    public Optional<SubscriptionResponse> getMyActiveSubscription(Long userId) {
-        return subscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
-                .map(this::toResponse);
+    public List<SubscriptionResponse> getMySubscriptions(Long userId) {
+        return subscriptionRepository.findByUserId(userId).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -104,8 +106,37 @@ public class SubscriptionService {
             throw new SubscriptionCancellationPendingException(subscriptionId);
         }
 
+        if (sub.getPendingPlan() != null) {
+            sub.setPlan(sub.getPendingPlan());
+            sub.setPendingPlan(null);
+        }
+
         sub.setRenewalDate(sub.getRenewalDate().plusMonths(sub.getPlan().getDurationMonths()));
         sub.setClassesUsedThisMonth(0);
+        return toResponse(subscriptionRepository.save(sub));
+    }
+
+    @Transactional
+    public SubscriptionResponse upgradeSubscription(Long subscriptionId, Long newPlanId, Long requestingUserId, boolean isAdmin) {
+        Subscription sub = subscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+
+        if (!isAdmin && !sub.getUser().getId().equals(requestingUserId)) {
+            throw new AccessDeniedException("Access denied to subscription " + subscriptionId);
+        }
+
+        if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
+            throw new SubscriptionNotActiveException(subscriptionId);
+        }
+
+        MembershipPlan newPlan = membershipPlanRepository.findById(newPlanId)
+                .orElseThrow(() -> new MembershipPlanNotFoundException(newPlanId));
+
+        if (!newPlan.isActive()) {
+            throw new MembershipPlanInactiveException(newPlanId);
+        }
+
+        sub.setPendingPlan(newPlan);
         return toResponse(subscriptionRepository.save(sub));
     }
 
@@ -138,6 +169,12 @@ public class SubscriptionService {
                 : null;
         boolean pendingCancellation = sub.getCancelledAt() != null
                 && sub.getStatus() == SubscriptionStatus.ACTIVE;
+        MembershipPlanSummary pendingPlanSummary = sub.getPendingPlan() != null
+                ? new MembershipPlanSummary(
+                        sub.getPendingPlan().getId(),
+                        sub.getPendingPlan().getName(),
+                        sub.getPendingPlan().getPriceMonthly())
+                : null;
         return new SubscriptionResponse(
                 sub.getId(),
                 planSummary,
@@ -148,7 +185,8 @@ public class SubscriptionService {
                 sub.getClassesUsedThisMonth(),
                 remaining,
                 pendingCancellation,
-                sub.getCancelledAt()
+                sub.getCancelledAt(),
+                pendingPlanSummary
         );
     }
 }
