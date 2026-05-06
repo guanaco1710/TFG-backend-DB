@@ -34,7 +34,7 @@ public class NotificationController {
     public ResponseEntity<PageResponse<NotificationResponse>> getMyNotifications(
             @RequestParam(required = false) NotificationType type,
             @RequestParam(defaultValue = "false") boolean unreadOnly,
-            @RequestParam(defaultValue = "false") boolean sentOnly,
+            @RequestParam(defaultValue = "true") boolean sentOnly,
             Pageable pageable,
             @AuthenticationPrincipal AuthenticatedUser principal) {
         return ResponseEntity.ok(

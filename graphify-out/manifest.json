@@ -76,16 +76,16 @@
     "hash": "4754964492f6389d1a4e88f68212213e"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationServiceTest.java": {
-    "mtime": 1778013413.0257916,
-    "hash": "d56866d5317697fe99cc5e1c17aa2801"
+    "mtime": 1778107954.9912531,
+    "hash": "9892f8ecae0e310948e9daf631774ced"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationRepositoryTest.java": {
     "mtime": 1778013391.2647936,
     "hash": "12a85627be129a65cf7e66a44a377e86"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/notification/NotificationControllerTest.java": {
-    "mtime": 1777746687.7513635,
-    "hash": "aac411e2efd1e3fa25669ffbe97ff5ea"
+    "mtime": 1778107954.9912531,
+    "hash": "25e5af4e7b78dcab5eac16a7e26ee172"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/attendance/AttendanceServiceTest.java": {
     "mtime": 1778013632.9297726,
