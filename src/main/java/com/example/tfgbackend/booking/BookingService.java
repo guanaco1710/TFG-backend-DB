@@ -5,6 +5,7 @@ import com.example.tfgbackend.booking.dto.ClassSessionSummary;
 import com.example.tfgbackend.booking.dto.ClassTypeRef;
 import com.example.tfgbackend.booking.dto.GymRef;
 import com.example.tfgbackend.booking.dto.RosterEntryResponse;
+import com.example.tfgbackend.booking.dto.UserRef;
 import com.example.tfgbackend.classsession.ClassSession;
 import com.example.tfgbackend.classsession.ClassSessionRepository;
 import com.example.tfgbackend.common.PageResponse;
@@ -231,7 +232,8 @@ public class BookingService {
     }
 
     private BookingResponse toBookingResponse(Booking b) {
-        return new BookingResponse(b.getId(), toSessionSummary(b.getSession()), b.getStatus(), b.getBookedAt());
+        UserRef user = new UserRef(b.getUser().getId(), b.getUser().getName());
+        return new BookingResponse(b.getId(), user, toSessionSummary(b.getSession()), b.getStatus(), b.getBookedAt());
     }
 
     private WaitlistEntryResponse toWaitlistResponse(WaitlistEntry e) {

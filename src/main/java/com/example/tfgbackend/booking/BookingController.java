@@ -86,7 +86,7 @@ public class BookingController {
     }
 
     @GetMapping(SESSIONS_BASE + "/{sessionId}/bookings")
-    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<PageResponse<RosterEntryResponse>> getSessionRoster(
             @PathVariable Long sessionId,
             Pageable pageable) {

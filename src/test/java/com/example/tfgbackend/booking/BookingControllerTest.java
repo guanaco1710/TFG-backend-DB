@@ -8,6 +8,7 @@ import com.example.tfgbackend.booking.dto.ClassTypeRef;
 import com.example.tfgbackend.booking.dto.GymRef;
 import com.example.tfgbackend.booking.dto.CreateBookingRequest;
 import com.example.tfgbackend.booking.dto.RosterEntryResponse;
+import com.example.tfgbackend.booking.dto.UserRef;
 import com.example.tfgbackend.common.GlobalExceptionHandler;
 import com.example.tfgbackend.common.PageResponse;
 import com.example.tfgbackend.config.SecurityConfig;
@@ -22,7 +23,6 @@ import com.example.tfgbackend.common.exception.SessionNotFoundException;
 import com.example.tfgbackend.common.exception.SessionNotBookableException;
 import com.example.tfgbackend.common.exception.WaitlistEntryNotFoundException;
 import com.example.tfgbackend.common.exception.WaitlistNotPermittedException;
-import com.example.tfgbackend.config.SecurityConfig;
 import com.example.tfgbackend.enums.BookingStatus;
 import com.example.tfgbackend.enums.UserRole;
 import com.example.tfgbackend.waitlist.dto.WaitlistEntryResponse;
@@ -121,7 +121,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("happy path: returns 201 with Location header and booking body")
         void createBooking_ValidRequest_Returns201WithLocationAndBody() throws Exception {
-            BookingResponse response = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
+            BookingResponse response = new BookingResponse(200L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
             when(bookingService.createBooking(eq(1L), eq(100L))).thenReturn(response);
 
             CreateBookingRequest body = new CreateBookingRequest(100L);
@@ -267,7 +267,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("customer cancels own booking returns 200 with full booking")
         void cancelBooking_OwnerCancels_Returns200WithBooking() throws Exception {
-            BookingResponse cancelled = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
+            BookingResponse cancelled = new BookingResponse(200L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
             when(bookingService.cancelBooking(eq(200L), any(), any())).thenReturn(cancelled);
 
             mvc.perform(post(BOOKINGS_BASE + "/200/cancel")
@@ -280,7 +280,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("admin cancels any booking returns 200 with full booking")
         void cancelBooking_AdminCancels_Returns200WithBooking() throws Exception {
-            BookingResponse cancelled = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
+            BookingResponse cancelled = new BookingResponse(200L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CANCELLED, Instant.now());
             when(bookingService.cancelBooking(eq(200L), any(), any())).thenReturn(cancelled);
 
             mvc.perform(post(BOOKINGS_BASE + "/200/cancel")
@@ -332,7 +332,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("returns 200 with paginated bookings")
         void getMyBookings_Authenticated_Returns200WithPage() throws Exception {
-            BookingResponse br = new BookingResponse(1L, SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
+            BookingResponse br = new BookingResponse(1L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
             PageResponse<BookingResponse> page = new PageResponse<>(
                     List.of(br), 0, 10, 1L, 1, false);
 
@@ -408,7 +408,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("owner retrieves own booking returns 200")
         void getBookingById_Owner_Returns200() throws Exception {
-            BookingResponse response = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
+            BookingResponse response = new BookingResponse(200L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
             when(bookingService.getBookingById(200L, 1L, false)).thenReturn(response);
 
             mvc.perform(get(BOOKINGS_BASE + "/200")
@@ -421,7 +421,7 @@ class BookingControllerTest {
         @Test
         @DisplayName("admin retrieves any booking returns 200")
         void getBookingById_Admin_Returns200() throws Exception {
-            BookingResponse response = new BookingResponse(200L, SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
+            BookingResponse response = new BookingResponse(200L, new UserRef(1L, "Alice"), SESSION_SUMMARY, BookingStatus.CONFIRMED, Instant.now());
             when(bookingService.getBookingById(200L, 99L, true)).thenReturn(response);
 
             mvc.perform(get(BOOKINGS_BASE + "/200")
@@ -487,11 +487,18 @@ class BookingControllerTest {
         }
 
         @Test
-        @DisplayName("customer is forbidden — returns 403")
-        void getSessionRoster_Customer_Returns403() throws Exception {
+        @DisplayName("customer can view session roster — returns 200")
+        void getSessionRoster_Customer_Returns200() throws Exception {
+            RosterEntryResponse entry = new RosterEntryResponse(
+                    1L, BookingStatus.CONFIRMED, Instant.now(), 1L, "Alice", "alice@test.com");
+            PageResponse<RosterEntryResponse> page = new PageResponse<>(
+                    List.of(entry), 0, 10, 1L, 1, false);
+            when(bookingService.getSessionRoster(eq(100L), any())).thenReturn(page);
+
             mvc.perform(get(SESSIONS_BASE + "/100/bookings")
                             .with(authentication(customerAuth(1L))))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].userFullName").value("Alice"));
         }
 
         @Test
