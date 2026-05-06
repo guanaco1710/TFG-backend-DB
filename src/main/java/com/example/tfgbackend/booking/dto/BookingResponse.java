@@ -6,6 +6,7 @@ import java.time.Instant;
 
 public record BookingResponse(
         Long id,
+        UserRef user,
         ClassSessionSummary classSession,
         BookingStatus status,
         Instant bookedAt

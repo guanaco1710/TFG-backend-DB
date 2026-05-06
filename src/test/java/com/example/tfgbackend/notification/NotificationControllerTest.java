@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -97,7 +97,7 @@ class NotificationControllerTest {
                 Instant.parse("2026-01-01T10:00:00Z"),
                 false,
                 userId,
-                100L);
+                new NotificationResponse.SessionSummary(100L, null, null));
     }
 
     private PageResponse<NotificationResponse> singlePage(NotificationResponse item) {
@@ -269,7 +269,7 @@ class NotificationControllerTest {
             when(notificationService.markAsRead(10L, 2L, false))
                     .thenReturn(new MarkReadResponse(1));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/10/read")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/10/read")
                             .with(authentication(customerAuth(2L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.updated").value(1));
@@ -281,7 +281,7 @@ class NotificationControllerTest {
             when(notificationService.markAsRead(10L, 2L, false))
                     .thenReturn(new MarkReadResponse(0));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/10/read")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/10/read")
                             .with(authentication(customerAuth(2L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.updated").value(0));
@@ -293,7 +293,7 @@ class NotificationControllerTest {
             when(notificationService.markAsRead(10L, 99L, true))
                     .thenReturn(new MarkReadResponse(1));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/10/read")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/10/read")
                             .with(authentication(adminAuth(99L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.updated").value(1));
@@ -305,7 +305,7 @@ class NotificationControllerTest {
             when(notificationService.markAsRead(eq(999L), any(), anyBoolean()))
                     .thenThrow(new NotificationNotFoundException(999L));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/999/read")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/999/read")
                             .with(authentication(customerAuth(2L))))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.error").value("NotificationNotFound"));
@@ -314,7 +314,7 @@ class NotificationControllerTest {
         @Test
         @DisplayName("unauthenticated returns 401")
         void markAsRead_Unauthenticated_Returns401() throws Exception {
-            mvc.perform(post(NOTIFICATIONS_BASE + "/10/read"))
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/10/read"))
                     .andExpect(status().isUnauthorized());
         }
     }
@@ -332,7 +332,7 @@ class NotificationControllerTest {
         void markAllAsRead_Authenticated_Returns200WithCount() throws Exception {
             when(notificationService.markAllAsRead(2L)).thenReturn(new MarkReadResponse(3));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/me/read-all")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/me/read-all")
                             .with(authentication(customerAuth(2L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.updated").value(3));
@@ -343,7 +343,7 @@ class NotificationControllerTest {
         void markAllAsRead_NoneUnread_Returns200WithZero() throws Exception {
             when(notificationService.markAllAsRead(2L)).thenReturn(new MarkReadResponse(0));
 
-            mvc.perform(post(NOTIFICATIONS_BASE + "/me/read-all")
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/me/read-all")
                             .with(authentication(customerAuth(2L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.updated").value(0));
@@ -352,7 +352,7 @@ class NotificationControllerTest {
         @Test
         @DisplayName("unauthenticated returns 401")
         void markAllAsRead_Unauthenticated_Returns401() throws Exception {
-            mvc.perform(post(NOTIFICATIONS_BASE + "/me/read-all"))
+            mvc.perform(patch(NOTIFICATIONS_BASE + "/me/read-all"))
                     .andExpect(status().isUnauthorized());
         }
     }

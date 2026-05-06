@@ -44,6 +44,15 @@ public class BookingController {
         return ResponseEntity.created(location).body(response);
     }
 
+    @PostMapping(SESSIONS_BASE + "/{sessionId}/bookings")
+    public ResponseEntity<BookingResponse> createBookingForSession(
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        BookingResponse response = bookingService.createBooking(principal.userId(), sessionId);
+        URI location = URI.create(BOOKINGS_BASE + "/" + response.id());
+        return ResponseEntity.created(location).body(response);
+    }
+
     @PostMapping(BOOKINGS_BASE + "/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id,
@@ -77,7 +86,7 @@ public class BookingController {
     }
 
     @GetMapping(SESSIONS_BASE + "/{sessionId}/bookings")
-    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<PageResponse<RosterEntryResponse>> getSessionRoster(
             @PathVariable Long sessionId,
             Pageable pageable) {

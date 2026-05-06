@@ -5,6 +5,7 @@ import com.example.tfgbackend.booking.dto.ClassSessionSummary;
 import com.example.tfgbackend.booking.dto.ClassTypeRef;
 import com.example.tfgbackend.booking.dto.GymRef;
 import com.example.tfgbackend.booking.dto.RosterEntryResponse;
+import com.example.tfgbackend.booking.dto.UserRef;
 import com.example.tfgbackend.classsession.ClassSession;
 import com.example.tfgbackend.classsession.ClassSessionRepository;
 import com.example.tfgbackend.common.PageResponse;
@@ -32,6 +33,7 @@ import com.example.tfgbackend.waitlist.dto.WaitlistEntryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,7 +117,7 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
-        bookingRepository.save(booking);
+        bookingRepository.delete(booking);
         notificationService.createBookingCancelled(booking.getUser().getId(), booking.getSession());
 
         // Refund the class credit if the session hasn't started yet
@@ -146,7 +148,13 @@ public class BookingService {
             Long userId, BookingStatus status, LocalDate from, LocalDate to, Pageable pageable) {
         OffsetDateTime fromDt = from != null ? from.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime() : null;
         OffsetDateTime toDt   = to   != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toOffsetDateTime() : null;
-        Page<Booking> page = bookingRepository.findByUserFiltered(userId, status, fromDt, toDt, pageable);
+
+        Specification<Booking> spec = (r, q, cb) -> cb.equal(r.get("user").get("id"), userId);
+        if (status != null) spec = spec.and((r, q, cb) -> cb.equal(r.get("status"), status));
+        if (fromDt != null) spec = spec.and((r, q, cb) -> cb.greaterThanOrEqualTo(r.get("session").get("startTime"), fromDt));
+        if (toDt   != null) spec = spec.and((r, q, cb) -> cb.lessThan(r.get("session").get("startTime"), toDt));
+
+        Page<Booking> page = bookingRepository.findAll(spec, pageable);
         return PageResponse.of(page.map(this::toBookingResponse));
     }
 
@@ -224,7 +232,8 @@ public class BookingService {
     }
 
     private BookingResponse toBookingResponse(Booking b) {
-        return new BookingResponse(b.getId(), toSessionSummary(b.getSession()), b.getStatus(), b.getBookedAt());
+        UserRef user = new UserRef(b.getUser().getId(), b.getUser().getName());
+        return new BookingResponse(b.getId(), user, toSessionSummary(b.getSession()), b.getStatus(), b.getBookedAt());
     }
 
     private WaitlistEntryResponse toWaitlistResponse(WaitlistEntry e) {

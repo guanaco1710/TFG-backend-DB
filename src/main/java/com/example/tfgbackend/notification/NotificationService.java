@@ -192,6 +192,14 @@ public class NotificationService {
     }
 
     private NotificationResponse toResponse(Notification n) {
+        NotificationResponse.SessionSummary sessionSummary = null;
+        if (n.getSession() != null) {
+            var s = n.getSession();
+            sessionSummary = new NotificationResponse.SessionSummary(
+                    s.getId(),
+                    s.getStartTime(),
+                    new NotificationResponse.ClassTypeSummary(s.getClassType().getName()));
+        }
         return new NotificationResponse(
                 n.getId(),
                 n.getType(),
@@ -200,6 +208,6 @@ public class NotificationService {
                 n.getSentAt(),
                 n.isRead(),
                 n.getUser().getId(),
-                n.getSession() != null ? n.getSession().getId() : null);
+                sessionSummary);
     }
 }

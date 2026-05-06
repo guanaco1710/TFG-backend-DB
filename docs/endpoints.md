@@ -392,7 +392,7 @@ Returns a flat `List` (no pagination). Same object shape as content items above.
 
 ### POST /bookings — Request
 ```json
-{ "classSessionId": 1 }
+{ "sessionId": 1 }
 ```
 
 ### POST /bookings — Response 201
@@ -417,7 +417,7 @@ If the session is full the booking is not created — a 409 `ClassFull` is retur
 
 | Status | `error` | Condition |
 |--------|---------|-----------|
-| 404 | `SessionNotFound` | `classSessionId` does not exist |
+| 404 | `SessionNotFound` | `sessionId` does not exist |
 | 409 | `SessionNotBookable` | Session is not in `SCHEDULED` state |
 | 409 | `AlreadyBooked` | User already has an active booking for this session |
 | 409 | `ClassFull` | No seats remaining |
@@ -484,7 +484,7 @@ Returns the full updated booking object (same shape as the 201 response above, w
 | Param | Type | Description |
 |-------|------|-------------|
 | `userId` | Long | Filter by user |
-| `classSessionId` | Long | Filter by session |
+| `sessionId` | Long | Filter by session |
 | `status` | string | Filter by booking status |
 | `page` | int | |
 | `size` | int | |

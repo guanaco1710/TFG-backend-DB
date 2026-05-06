@@ -14,8 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,7 +55,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getById(id, principal.userId(), isAdmin));
     }
 
-    @PostMapping(NOTIFICATIONS_BASE + "/{id}/read")
+    @PatchMapping(NOTIFICATIONS_BASE + "/{id}/read")
     public ResponseEntity<MarkReadResponse> markAsRead(
             @PathVariable Long id,
             @AuthenticationPrincipal AuthenticatedUser principal) {
@@ -63,7 +63,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.markAsRead(id, principal.userId(), isAdmin));
     }
 
-    @PostMapping(NOTIFICATIONS_BASE + "/me/read-all")
+    @PatchMapping(NOTIFICATIONS_BASE + "/me/read-all")
     public ResponseEntity<MarkReadResponse> markAllAsRead(
             @AuthenticationPrincipal AuthenticatedUser principal) {
         return ResponseEntity.ok(notificationService.markAllAsRead(principal.userId()));

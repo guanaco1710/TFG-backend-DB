@@ -443,7 +443,7 @@ class NotificationServiceTest {
             assertThat(dto.type()).isEqualTo(NotificationType.CONFIRMATION);
             assertThat(dto.sent()).isTrue();
             assertThat(dto.userId()).isEqualTo(alice.getId());
-            assertThat(dto.sessionId()).isEqualTo(futureSession.getId());
+            assertThat(dto.session().id()).isEqualTo(futureSession.getId());
         }
     }
 
@@ -544,7 +544,7 @@ class NotificationServiceTest {
 
             NotificationResponse result = notificationService.getById(2L, alice.getId(), false);
 
-            assertThat(result.sessionId()).isNull();
+            assertThat(result.session()).isNull();
         }
     }
 
@@ -776,7 +776,7 @@ class NotificationServiceTest {
                     notificationService.getSessionNotifications(futureSession.getId());
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).sessionId()).isEqualTo(futureSession.getId());
+            assertThat(result.get(0).session().id()).isEqualTo(futureSession.getId());
         }
 
         @Test

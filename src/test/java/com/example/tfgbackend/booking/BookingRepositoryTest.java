@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -132,5 +133,85 @@ class BookingRepositoryTest extends AbstractRepositoryTest {
 
         assertThat(page.getContent()).hasSize(1)
                 .allMatch(b -> b.getStatus() == BookingStatus.CONFIRMED);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Specification-based filtering (replaces old findByUserFiltered @Query)
+    // ---------------------------------------------------------------------------
+
+    @Test
+    void findAll_ByUserSpec_ReturnsOnlyThatUsersBookings() {
+        persistBooking(alice, session1, BookingStatus.CONFIRMED, Instant.now());
+        persistBooking(bob, session1, BookingStatus.CONFIRMED, Instant.now());
+        em.clear();
+
+        Specification<Booking> spec = (r, q, cb) -> cb.equal(r.get("user").get("id"), alice.getId());
+        Page<Booking> page = repository.findAll(spec, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(1)
+                .allMatch(b -> b.getUser().getId().equals(alice.getId()));
+    }
+
+    @Test
+    void findAll_ByUserAndStatusSpec_ReturnsFilteredByStatus() {
+        persistBooking(alice, session1, BookingStatus.CONFIRMED, Instant.now());
+        persistBooking(alice, session2, BookingStatus.CANCELLED, Instant.now());
+        em.clear();
+
+        Specification<Booking> spec = Specification
+                .<Booking>where((r, q, cb) -> cb.equal(r.get("user").get("id"), alice.getId()))
+                .and((r, q, cb) -> cb.equal(r.get("status"), BookingStatus.CONFIRMED));
+        Page<Booking> page = repository.findAll(spec, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(1)
+                .allMatch(b -> b.getStatus() == BookingStatus.CONFIRMED);
+    }
+
+    @Test
+    void findAll_ByUserAndFromSpec_ExcludesSessionsBeforeFrom() {
+        // session1 startTime = now+1d, session2 startTime = now+2d
+        OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).plusDays(1).plusHours(12);
+        persistBooking(alice, session1, BookingStatus.CONFIRMED, Instant.now()); // before cutoff
+        persistBooking(alice, session2, BookingStatus.CONFIRMED, Instant.now()); // after cutoff
+        em.clear();
+
+        Specification<Booking> spec = Specification
+                .<Booking>where((r, q, cb) -> cb.equal(r.get("user").get("id"), alice.getId()))
+                .and((r, q, cb) -> cb.greaterThanOrEqualTo(r.get("session").get("startTime"), cutoff));
+        Page<Booking> page = repository.findAll(spec, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(1)
+                .allMatch(b -> b.getSession().getId().equals(session2.getId()));
+    }
+
+    @Test
+    void findAll_ByUserAndToSpec_ExcludesSessionsAfterTo() {
+        // session1 startTime = now+1d, session2 startTime = now+2d
+        OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).plusDays(1).plusHours(12);
+        persistBooking(alice, session1, BookingStatus.CONFIRMED, Instant.now()); // before cutoff
+        persistBooking(alice, session2, BookingStatus.CONFIRMED, Instant.now()); // after cutoff
+        em.clear();
+
+        Specification<Booking> spec = Specification
+                .<Booking>where((r, q, cb) -> cb.equal(r.get("user").get("id"), alice.getId()))
+                .and((r, q, cb) -> cb.lessThan(r.get("session").get("startTime"), cutoff));
+        Page<Booking> page = repository.findAll(spec, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(1)
+                .allMatch(b -> b.getSession().getId().equals(session1.getId()));
+    }
+
+    @Test
+    void findAll_NoOptionalFilters_ReturnsAllUserBookings() {
+        persistBooking(alice, session1, BookingStatus.CONFIRMED, Instant.now());
+        persistBooking(alice, session2, BookingStatus.CANCELLED, Instant.now());
+        persistBooking(bob, session1, BookingStatus.CONFIRMED, Instant.now());
+        em.clear();
+
+        Specification<Booking> spec = (r, q, cb) -> cb.equal(r.get("user").get("id"), alice.getId());
+        Page<Booking> page = repository.findAll(spec, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(2)
+                .allMatch(b -> b.getUser().getId().equals(alice.getId()));
     }
 }
