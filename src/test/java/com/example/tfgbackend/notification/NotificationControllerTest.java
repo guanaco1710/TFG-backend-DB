@@ -97,7 +97,7 @@ class NotificationControllerTest {
                 Instant.parse("2026-01-01T10:00:00Z"),
                 false,
                 userId,
-                100L);
+                new NotificationResponse.SessionSummary(100L, null, null));
     }
 
     private PageResponse<NotificationResponse> singlePage(NotificationResponse item) {

@@ -1,16 +1,16 @@
-# Graph Report - tfg-backend  (2026-05-06)
+# Graph Report - tfg-backend  (2026-05-07)
 
 ## Corpus Check
-- 209 files · ~63,004 words
+- 210 files · ~63,103 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1763 nodes · 3247 edges · 120 communities detected
-- Extraction: 72% EXTRACTED · 28% INFERRED · 0% AMBIGUOUS · INFERRED: 911 edges (avg confidence: 0.8)
+- 1765 nodes · 3251 edges · 129 communities detected
+- Extraction: 72% EXTRACTED · 28% INFERRED · 0% AMBIGUOUS · INFERRED: 913 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cc46bf7f`
+- Built from commit: `dc8d6319`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -134,10 +134,19 @@
 - [[_COMMUNITY_Community 116|Community 116]]
 - [[_COMMUNITY_Community 117|Community 117]]
 - [[_COMMUNITY_Community 118|Community 118]]
-- [[_COMMUNITY_Community 176|Community 176]]
+- [[_COMMUNITY_Community 119|Community 119]]
+- [[_COMMUNITY_Community 120|Community 120]]
+- [[_COMMUNITY_Community 121|Community 121]]
+- [[_COMMUNITY_Community 122|Community 122]]
+- [[_COMMUNITY_Community 123|Community 123]]
+- [[_COMMUNITY_Community 124|Community 124]]
+- [[_COMMUNITY_Community 125|Community 125]]
+- [[_COMMUNITY_Community 126|Community 126]]
+- [[_COMMUNITY_Community 127|Community 127]]
+- [[_COMMUNITY_Community 186|Community 186]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `of()` - 359 edges
+1. `of()` - 360 edges
 2. `User` - 79 edges
 3. `GlobalExceptionHandler` - 44 edges
 4. `RuntimeException` - 37 edges
@@ -165,168 +174,164 @@
 - **Subscription ties User to a MembershipPlan at a specific Gym** — entity_subscription, entity_user, entity_membershipplan, entity_gym [EXTRACTED 1.00]
 - **Notifications triggered automatically by booking and session lifecycle events** — entity_notification, entity_booking, entity_classsession, firebase_fcm [EXTRACTED 0.95]
 
-## Communities (177 total, 84 thin omitted)
+## Communities (187 total, 94 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
 Nodes (8): AuthService, AuthServiceTest, JwtAuthFilter, JwtService, OncePerRequestFilter, UserRepository, UserRepositoryTest, UserService
 
 ### Community 1 - "Community 1"
-Cohesion: 0.05
-Nodes (14): CreateBookingCancelled, CreateBookingConfirmed, CreateSessionCancelled, Delete, DispatchPending, GetById, GetMyNotifications, GetSessionNotifications (+6 more)
-
-### Community 2 - "Community 2"
-Cohesion: 0.07
-Nodes (8): AttendanceRepository, AttendanceRepositoryStatsTest, BookingRepositoryStatsTest, StatsService, GetAttendanceHistory, GetUserStats, StatsServiceTest, SubscriptionRepositoryStatsTest
-
-### Community 3 - "Community 3"
 Cohesion: 0.07
 Nodes (8): BookingControllerTest, CancelBooking, CreateBooking, GetMyBookings, GetMyWaitlistEntries, GetSessionRoster, JoinWaitlist, LeaveWaitlist
 
-### Community 4 - "Community 4"
+### Community 2 - "Community 2"
 Cohesion: 0.05
 Nodes (11): MembershipPlanRepository, MembershipPlanService, CreatePlan, DeactivatePlan, GetAllPlans, GetPlanById, MembershipPlanServiceTest, UpdatePlan (+3 more)
 
-### Community 5 - "Community 5"
-Cohesion: 0.05
-Nodes (12): AbstractRepositoryTest, ClassTypeRepositoryTest, ExistsByNameIgnoreCase, ExistsByNameIgnoreCaseAndIdNot, ExistsByNameIgnoreCase, ExistsByNameIgnoreCaseAndIdNot, GymRepositoryTest, AverageScoreByClassTypeId (+4 more)
+### Community 3 - "Community 3"
+Cohesion: 0.07
+Nodes (9): Delete, GetById, GetMyNotifications, GetSessionNotifications, GetUnreadCount, GetUserNotifications, MarkAllAsRead, MarkAsRead (+1 more)
 
-### Community 6 - "Community 6"
+### Community 4 - "Community 4"
 Cohesion: 0.07
 Nodes (46): Android Frontend (Kotlin + Jetpack Compose), Application YAML (h2 profile), Application YAML (postgres profile), Application YAML (base config), Booking State Machine, Gymcatch Competitor, Mindbody Competitor, GymBook_DB PostgreSQL Database (+38 more)
 
-### Community 7 - "Community 7"
+### Community 6 - "Community 6"
 Cohesion: 0.08
-Nodes (7): CancelSubscription, GetAllSubscriptions, GetMySubscriptions, RenewSubscription, Subscribe, SubscriptionControllerTest, UpgradeSubscription
+Nodes (6): UpdateSession, FindByFilters, List, of(), FindByFilters, FindByUserIdPaged
+
+### Community 7 - "Community 7"
+Cohesion: 0.06
+Nodes (10): CreateBookingCancelled, Delete, DispatchPending, GetById, GetMyNotifications, GetSessionNotifications, GetUnreadCount, GetUserNotifications (+2 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.08
-Nodes (6): FindByFilters, List, of(), FindByFilters, ListGyms, FindBySessionIdPaged
+Cohesion: 0.09
+Nodes (6): CancelSubscription, GetAllSubscriptions, RenewSubscription, Subscribe, SubscriptionControllerTest, UpgradeSubscription
 
-### Community 10 - "Community 10"
+### Community 9 - "Community 9"
 Cohesion: 0.11
 Nodes (6): Create, Delete, GetById, GymControllerTest, ListGyms, Update
 
-### Community 11 - "Community 11"
+### Community 10 - "Community 10"
 Cohesion: 0.1
 Nodes (6): Create, DeleteRating, ListBySession, MyRatings, RatingControllerTest, Update
 
-### Community 12 - "Community 12"
+### Community 11 - "Community 11"
 Cohesion: 0.1
 Nodes (6): AddPaymentMethod, DeletePaymentMethod, GetPaymentMethod, ListPaymentMethods, PaymentMethodControllerTest, SetDefault
+
+### Community 12 - "Community 12"
+Cohesion: 0.08
+Nodes (5): BookingRepository, GetMyBookings, RatingService, Create, RatingServiceTest
 
 ### Community 13 - "Community 13"
 Cohesion: 0.12
 Nodes (7): CancelSession, ClassSessionControllerTest, CreateSession, GetSchedule, GetSessionById, ListSessions, UpdateSession
 
 ### Community 14 - "Community 14"
-Cohesion: 0.09
-Nodes (6): AddPaymentMethod, DeletePaymentMethod, GetPaymentMethod, ListPaymentMethods, PaymentMethodServiceTest, SetDefault
+Cohesion: 0.1
+Nodes (7): GetBookingById, GetAttendanceHistory, GetUserStats, StatsControllerTest, GetMySubscriptions, GetAllSubscriptions, GetUserById
 
 ### Community 15 - "Community 15"
-Cohesion: 0.08
-Nodes (5): BookingRepository, GetMyBookings, RatingService, Create, RatingServiceTest
+Cohesion: 0.09
+Nodes (6): AddPaymentMethod, DeletePaymentMethod, GetPaymentMethod, ListPaymentMethods, PaymentMethodServiceTest, SetDefault
 
 ### Community 16 - "Community 16"
 Cohesion: 0.12
 Nodes (6): CreatePlan, DeactivatePlan, GetAllPlans, GetPlanById, MembershipPlanControllerTest, UpdatePlan
 
 ### Community 17 - "Community 17"
-Cohesion: 0.09
-Nodes (7): AdminUpdateUser, DeactivateUser, GetMe, GetUserById, ListUsers, UpdateMe, UserControllerTest
-
-### Community 18 - "Community 18"
 Cohesion: 0.12
 Nodes (6): ClassTypeControllerTest, Create, DeleteClassType, GetById, ListClassTypes, Update
+
+### Community 18 - "Community 18"
+Cohesion: 0.11
+Nodes (6): BookingServiceTest, CancelBooking, GetBookingById, GetMyWaitlistEntries, GetSessionRoster, LeaveWaitlist
 
 ### Community 19 - "Community 19"
 Cohesion: 0.09
 Nodes (4): AuthIntegrationTest, PaymentMethodController, AbstractRepositoryTest, TfgBackendApplicationTests
 
 ### Community 20 - "Community 20"
-Cohesion: 0.1
-Nodes (7): Delete, GetById, GetMyNotifications, GetUnreadCount, MarkAllAsRead, MarkAsRead, NotificationControllerTest
-
-### Community 21 - "Community 21"
 Cohesion: 0.13
 Nodes (4): AttendanceControllerTest, DeleteAttendance, GetSessionAttendance, RecordAttendance
 
-### Community 22 - "Community 22"
-Cohesion: 0.1
-Nodes (4): CancelSubscription, RenewSubscription, Subscribe, SubscriptionServiceTest
+### Community 21 - "Community 21"
+Cohesion: 0.11
+Nodes (6): AdminUpdateUser, DeactivateUser, GetMe, ListUsers, UpdateMe, UserControllerTest
 
-### Community 23 - "Community 23"
+### Community 22 - "Community 22"
 Cohesion: 0.1
 Nodes (10): Attendance, AttendanceService, BaseEntity, Booking, MembershipPlan, Notification, PaymentMethod, Rating (+2 more)
 
+### Community 23 - "Community 23"
+Cohesion: 0.09
+Nodes (6): ClassTypeService, ClassTypeServiceTest, Create, Delete, GetById, Update
+
 ### Community 24 - "Community 24"
+Cohesion: 0.1
+Nodes (4): GetMySubscriptions, RenewSubscription, Subscribe, SubscriptionServiceTest
+
+### Community 26 - "Community 26"
 Cohesion: 0.13
 Nodes (4): AttendanceServiceTest, DeleteAttendance, GetSessionAttendance, RecordAttendance
 
-### Community 26 - "Community 26"
-Cohesion: 0.11
-Nodes (5): ClassTypeService, ClassTypeServiceTest, Create, Delete, GetById
+### Community 27 - "Community 27"
+Cohesion: 0.09
+Nodes (7): AbstractRepositoryTest, ClassTypeRepositoryTest, GymRepositoryTest, AverageScoreByClassTypeId, AverageScoreBySessionId, FindByUserIdAndSessionId, RatingRepositoryTest
 
 ### Community 29 - "Community 29"
-Cohesion: 0.15
-Nodes (3): GetBookingById, GetAllSubscriptions, GetMySubscriptions
+Cohesion: 0.22
+Nodes (3): CreateBookingConfirmed, CreateSessionCancelled, NotificationServiceTest
 
-### Community 30 - "Community 30"
-Cohesion: 0.16
-Nodes (5): ClassSessionServiceTest, CreateSession, GetSessionById, ClassType, Gym
+### Community 31 - "Community 31"
+Cohesion: 0.19
+Nodes (4): DeleteUnsentByUserIdAndSessionId, FindByUserIdAndFilters, FindPendingDue, User
 
-### Community 32 - "Community 32"
-Cohesion: 0.2
-Nodes (4): FindByUserIdAndFilters, FindPendingDue, FindFirstByUserIdAndIdNotOrderByCreatedAtDesc, User
+### Community 33 - "Community 33"
+Cohesion: 0.12
+Nodes (4): ExistsByUserIdAndCardTypeAndLast4, FindByUserId, FindFirstByUserIdAndIsDefaultTrue, PaymentMethodRepositoryTest
+
+### Community 35 - "Community 35"
+Cohesion: 0.13
+Nodes (4): Delete, ListBySession, MyRatings, Update
 
 ### Community 36 - "Community 36"
 Cohesion: 0.17
 Nodes (4): Create, Delete, GetById, GymServiceTest
 
-### Community 37 - "Community 37"
-Cohesion: 0.13
-Nodes (4): Delete, ListBySession, MyRatings, Update
-
 ### Community 38 - "Community 38"
-Cohesion: 0.13
-Nodes (4): ExistsByUserIdAndCardTypeAndLast4, FindByIdAndUserId, FindByUserId, PaymentMethodRepositoryTest
+Cohesion: 0.18
+Nodes (4): ClassSessionServiceTest, CreateSession, GetSessionById, Gym
 
-### Community 40 - "Community 40"
-Cohesion: 0.16
-Nodes (4): BookingServiceTest, GetMyWaitlistEntries, GetSessionRoster, LeaveWaitlist
-
-### Community 42 - "Community 42"
-Cohesion: 0.24
-Nodes (3): GetAttendanceHistory, GetUserStats, StatsControllerTest
-
-### Community 43 - "Community 43"
+### Community 45 - "Community 45"
 Cohesion: 0.17
 Nodes (4): FindBySessionId, FindBySessionIdOrderByScheduledAtDesc, FindByUserIdOrderByScheduledAtDesc, NotificationRepositoryTest
 
-### Community 61 - "Community 61"
+### Community 63 - "Community 63"
 Cohesion: 0.33
 Nodes (3): CommandLineRunner, DataInitializer, TfgBackendApplication
 
-### Community 63 - "Community 63"
+### Community 65 - "Community 65"
 Cohesion: 0.29
-Nodes (3): ClassTypeNotFoundException, NoActiveSubscriptionException, RuntimeException
+Nodes (3): InvalidDefaultToggleException, NoActiveSubscriptionException, RuntimeException
 
 ## Knowledge Gaps
 - **14 isolated node(s):** `BaseEntity`, `JpaConfig`, `Application YAML (base config)`, `Application YAML (h2 profile)`, `Spring Boot Getting Started Help` (+9 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **84 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **94 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `of()` connect `Community 8` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 7`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 20`, `Community 21`, `Community 22`, `Community 24`, `Community 25`, `Community 26`, `Community 28`, `Community 29`, `Community 30`, `Community 32`, `Community 33`, `Community 34`, `Community 35`, `Community 36`, `Community 37`, `Community 39`, `Community 40`, `Community 41`, `Community 42`, `Community 44`, `Community 45`, `Community 46`, `Community 50`, `Community 51`, `Community 52`, `Community 71`, `Community 77`, `Community 78`, `Community 81`?**
-  _High betweenness centrality (0.414) - this node is a cross-community bridge._
-- **Why does `User` connect `Community 32` to `Community 0`, `Community 1`, `Community 2`, `Community 4`, `Community 5`, `Community 14`, `Community 15`, `Community 19`, `Community 22`, `Community 23`, `Community 24`, `Community 29`, `Community 33`, `Community 34`, `Community 35`, `Community 38`, `Community 40`, `Community 43`, `Community 44`, `Community 45`, `Community 53`, `Community 57`, `Community 58`, `Community 59`, `Community 73`, `Community 74`, `Community 79`?**
-  _High betweenness centrality (0.078) - this node is a cross-community bridge._
-- **Why does `BaseEntity` connect `Community 23` to `Community 32`, `Community 46`, `Community 30`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Are the 358 inferred relationships involving `of()` (e.g. with `.expirePendingCancellations_ExpiredSubscriptionsExist_SetsStatusCancelled()` and `.expirePendingCancellations_NothingExpired_SaveAllNotCalled()`) actually correct?**
-  _`of()` has 358 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `of()` connect `Community 6` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 20`, `Community 21`, `Community 23`, `Community 24`, `Community 25`, `Community 26`, `Community 29`, `Community 30`, `Community 31`, `Community 34`, `Community 35`, `Community 36`, `Community 37`, `Community 38`, `Community 39`, `Community 40`, `Community 41`, `Community 42`, `Community 43`, `Community 44`, `Community 47`, `Community 51`, `Community 52`, `Community 54`, `Community 66`, `Community 67`, `Community 76`, `Community 82`, `Community 90`?**
+  _High betweenness centrality (0.403) - this node is a cross-community bridge._
+- **Why does `User` connect `Community 31` to `Community 0`, `Community 2`, `Community 7`, `Community 12`, `Community 15`, `Community 18`, `Community 19`, `Community 22`, `Community 24`, `Community 26`, `Community 27`, `Community 29`, `Community 33`, `Community 34`, `Community 40`, `Community 41`, `Community 43`, `Community 44`, `Community 45`, `Community 46`, `Community 53`, `Community 54`, `Community 58`, `Community 59`, `Community 60`, `Community 61`, `Community 74`, `Community 86`, `Community 87`, `Community 88`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
+- **Why does `AbstractRepositoryTest` connect `Community 27` to `Community 0`, `Community 33`, `Community 39`, `Community 40`, `Community 74`, `Community 43`, `Community 45`, `Community 46`, `Community 58`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Are the 359 inferred relationships involving `of()` (e.g. with `.expirePendingCancellations_ExpiredSubscriptionsExist_SetsStatusCancelled()` and `.expirePendingCancellations_NothingExpired_SaveAllNotCalled()`) actually correct?**
+  _`of()` has 359 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 77 inferred relationships involving `User` (e.g. with `.setUp()` and `.setUp()`) actually correct?**
   _`User` has 77 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 26 inferred relationships involving `ClassType` (e.g. with `.setUp()` and `.createBookingConfirmed_FarFutureSession_ReminderScheduledAt24HBefore()`) actually correct?**
