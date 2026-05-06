@@ -43,6 +43,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -56,7 +57,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -370,7 +370,7 @@ class BookingServiceTest {
             bookingService.cancelBooking(200L, 1L, false);
 
             assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
-            verify(bookingRepository).save(booking);
+            verify(bookingRepository).delete(booking);
             verify(waitlistRepository, never()).delete(any());
         }
 
@@ -391,17 +391,13 @@ class BookingServiceTest {
             bookingService.cancelBooking(200L, 1L, false);
 
             assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+            verify(bookingRepository).delete(booking);
 
             ArgumentCaptor<Booking> promotedCaptor = ArgumentCaptor.forClass(Booking.class);
-            // Two saves: one for cancellation, one for the new CONFIRMED booking
-            verify(bookingRepository, org.mockito.Mockito.times(2)).save(promotedCaptor.capture());
-
-            List<Booking> saved = promotedCaptor.getAllValues();
-            Booking promoted = saved.stream()
-                    .filter(b -> b.getUser().equals(bob))
-                    .findFirst()
-                    .orElseThrow();
+            verify(bookingRepository).save(promotedCaptor.capture());
+            Booking promoted = promotedCaptor.getValue();
             assertThat(promoted.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+            assertThat(promoted.getUser()).isEqualTo(bob);
             assertThat(promoted.getSession()).isEqualTo(scheduledSession);
 
             verify(waitlistRepository).delete(first);
@@ -418,7 +414,7 @@ class BookingServiceTest {
             bookingService.cancelBooking(200L, 99L, true);
 
             assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELLED);
-            verify(bookingRepository).save(booking);
+            verify(bookingRepository).delete(booking);
         }
 
         @Test
@@ -493,54 +489,50 @@ class BookingServiceTest {
             Booking b2 = buildBooking(2L, alice, scheduledSession, BookingStatus.CANCELLED);
             Page<Booking> page = new PageImpl<>(List.of(b1, b2), PageRequest.of(0, 10), 2);
 
-            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class)))
-                    .thenReturn(page);
+            when(bookingRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
             PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, null, null, PageRequest.of(0, 10));
 
             assertThat(response.content()).hasSize(2);
             assertThat(response.totalElements()).isEqualTo(2);
-            verify(bookingRepository).findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class));
+            verify(bookingRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("status filter is passed to findByUserFiltered")
-        void getMyBookings_WithStatusFilter_DelegatesToFilteredQuery() {
+        @DisplayName("status filter builds spec that is passed to findAll")
+        void getMyBookings_WithStatusFilter_DelegatesToSpec() {
             Booking b1 = buildBooking(1L, alice, scheduledSession, BookingStatus.CONFIRMED);
             Page<Booking> page = new PageImpl<>(List.of(b1), PageRequest.of(0, 10), 1);
 
-            when(bookingRepository.findByUserFiltered(eq(1L), eq(BookingStatus.CONFIRMED), isNull(), isNull(), any(Pageable.class)))
-                    .thenReturn(page);
+            when(bookingRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
             PageResponse<BookingResponse> response = bookingService.getMyBookings(
                     1L, BookingStatus.CONFIRMED, null, null, PageRequest.of(0, 10));
 
             assertThat(response.content()).hasSize(1);
             assertThat(response.content().get(0).status()).isEqualTo(BookingStatus.CONFIRMED);
-            verify(bookingRepository).findByUserFiltered(eq(1L), eq(BookingStatus.CONFIRMED), isNull(), isNull(), any(Pageable.class));
+            verify(bookingRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("date range filter converts LocalDate to OffsetDateTime bounds")
-        void getMyBookings_WithDateRange_PassesBoundsToRepository() {
-            java.time.LocalDate from = java.time.LocalDate.of(2025, 6, 1);
-            java.time.LocalDate to   = java.time.LocalDate.of(2025, 6, 7);
+        @DisplayName("date range filter builds spec that is passed to findAll")
+        void getMyBookings_WithDateRange_DelegatesToSpec() {
+            LocalDate from = LocalDate.of(2025, 6, 1);
+            LocalDate to   = LocalDate.of(2025, 6, 7);
             Page<Booking> page = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
 
-            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), any(), any(), any(Pageable.class)))
-                    .thenReturn(page);
+            when(bookingRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
             bookingService.getMyBookings(1L, null, from, to, PageRequest.of(0, 10));
 
-            verify(bookingRepository).findByUserFiltered(eq(1L), isNull(), any(), any(), any(Pageable.class));
+            verify(bookingRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
         @DisplayName("empty result returns page with no content")
         void getMyBookings_NoneFound_ReturnsEmptyPage() {
             Page<Booking> empty = Page.empty(PageRequest.of(0, 10));
-            when(bookingRepository.findByUserFiltered(eq(1L), isNull(), isNull(), isNull(), any(Pageable.class)))
-                    .thenReturn(empty);
+            when(bookingRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(empty);
 
             PageResponse<BookingResponse> response = bookingService.getMyBookings(1L, null, null, null, PageRequest.of(0, 10));
 

@@ -178,7 +178,7 @@ public class ClassSessionService {
         InstructorSummary instructorSummary = session.getInstructor() == null ? null : new InstructorSummary(
                 session.getInstructor().getId(),
                 session.getInstructor().getName(),
-                session.getInstructor().getSpecialty()
+                session.getInstructor().getSpecialty() != null ? session.getInstructor().getSpecialty() : ""
         );
 
         return new ClassSessionResponse(

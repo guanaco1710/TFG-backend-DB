@@ -293,7 +293,7 @@ class GymServiceTest {
 
             GymResponse result = gymService.create(request);
 
-            assertThat(result.phone()).isNull();
+            assertThat(result.phone()).isEmpty();
             ArgumentCaptor<Gym> captor = ArgumentCaptor.forClass(Gym.class);
             verify(gymRepository).save(captor.capture());
             assertThat(captor.getValue().getPhone()).isNull();
@@ -370,7 +370,7 @@ class GymServiceTest {
 
             GymResponse result = gymService.update(1L, request);
 
-            assertThat(result.phone()).isNull();
+            assertThat(result.phone()).isEmpty();
         }
 
         @Test

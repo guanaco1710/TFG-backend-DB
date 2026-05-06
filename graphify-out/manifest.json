@@ -92,16 +92,16 @@
     "hash": "7488e38b38b12c1dc5c97f21c0bdb9a7"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingServiceTest.java": {
-    "mtime": 1778015517.1086102,
-    "hash": "412b3021aa9ce2c5040d4d5101a70897"
+    "mtime": 1778016335.6595397,
+    "hash": "8766adef5d03fa92f1afe235e6a270af"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingRepositoryTest.java": {
     "mtime": 1778013620.9807737,
     "hash": "d0f7272a57c08f3ae105a4b28d12e1d5"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/booking/BookingControllerTest.java": {
-    "mtime": 1778015470.2046144,
-    "hash": "d94741b51f14aeaaaa4c7df4810241c8"
+    "mtime": 1778016345.239539,
+    "hash": "28950daa493c7f4b9d15d88e81404cdd"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/test/java/com/example/tfgbackend/paymentmethod/PaymentMethodRepositoryTest.java": {
     "mtime": 1777746687.7525156,
@@ -572,20 +572,28 @@
     "hash": "a97dde59c5305fb909b13af45dcc5b69"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/BookingService.java": {
-    "mtime": 1778015300.990629,
-    "hash": "ad1d4376c9ca27140500a679a7939e79"
+    "mtime": 1778016302.8235426,
+    "hash": "3a5c3c5cf9680f2383523379a616f675"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/CreateBookingRequest.java": {
     "mtime": 1777274555.1577334,
     "hash": "1d4fe6b97f247f7d34b05b80daf8828c"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/ClassSessionSummary.java": {
-    "mtime": 1778013156.1968138,
-    "hash": "14cd93721fefd655332ee31df018a5b1"
+    "mtime": 1778016290.6145437,
+    "hash": "fd6b9b2133e7750e542f1d9297786caa"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/ClassTypeRef.java": {
+    "mtime": 1778016283.9465442,
+    "hash": "d8d69e1973d79ac1d376d9ebf5681d5e"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/BookingResponse.java": {
     "mtime": 1777274555.157475,
     "hash": "45cce584217c825bf4801af7ab9af37f"
+  },
+  "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/GymRef.java": {
+    "mtime": 1778016286.8685439,
+    "hash": "437ef15198f0e4d3b8c127cdd8a094c6"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/java/com/example/tfgbackend/booking/dto/RosterEntryResponse.java": {
     "mtime": 1777367995.795581,
@@ -840,8 +848,8 @@
     "hash": "b1f4a57349147cd71629f43b702cd5a1"
   },
   "/home/guanaco/tfg/backend/tfg-backend/docs/endpoints.md": {
-    "mtime": 1778015369.442623,
-    "hash": "470b192f842ad70e8059a8f36342355e"
+    "mtime": 1778016392.4905348,
+    "hash": "44b8e018f789bd5ffdbd4ba7babe9ddf"
   },
   "/home/guanaco/tfg/backend/tfg-backend/src/main/resources/application.yaml": {
     "mtime": 1777274555.165944,

@@ -80,8 +80,8 @@ public class GymService {
                 gym.getName(),
                 gym.getAddress(),
                 gym.getCity(),
-                gym.getPhone(),
-                gym.getOpeningHours(),
+                gym.getPhone() != null ? gym.getPhone() : "",
+                gym.getOpeningHours() != null ? gym.getOpeningHours() : "",
                 gym.isActive(),
                 gym.getCreatedAt(),
                 gym.getUpdatedAt()
